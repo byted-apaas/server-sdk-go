@@ -1,0 +1,119 @@
+// Copyright 2022 ByteDance Ltd. and/or its affiliates
+// SPDX-License-Identifier: MIT
+
+package utils
+
+import (
+	"context"
+	"encoding/json"
+	"runtime"
+
+	cConstants "github.com/byted-apaas/server-common-go/constants"
+	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
+	cHttp "github.com/byted-apaas/server-common-go/http"
+	log "github.com/byted-apaas/server-common-go/logger"
+	cUtils "github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/common/structs"
+)
+
+func GoWithRecover(ctx context.Context, f func() error) {
+	go func() {
+		defer func() {
+			if e := recover(); e != nil {
+				const size = 64 << 10
+				buf := make([]byte, size)
+				buf = buf[:runtime.Stack(buf, false)]
+				log.GetLogger(ctx).Errorf("panic: err is %+v, stack is %+v\n", e, string(buf))
+			}
+		}()
+		if e := f(); e != nil {
+			log.GetLogger(ctx).Errorf("[GoWithRecover] Do func failed, err: %+v\n", e)
+		}
+	}()
+}
+
+func SetCtx(ctx context.Context, appCtx *structs.AppCtx, method string) context.Context {
+	ctx = SetAppConfToCtx(ctx, appCtx)
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx = cUtils.SetApiTimeoutMethodToCtx(ctx, method)
+	return ctx
+}
+
+func SetAppConfToCtx(ctx context.Context, appCtx *structs.AppCtx) context.Context {
+	if appCtx == nil || appCtx.Mode != structs.AppModeOpenSDK {
+		return ctx
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	targetEnv := appCtx.GetEnv()
+	conf, _ := cConstants.EnvConfMap[targetEnv.String()]
+
+	ctx = cHttp.SetCredentialToCtx(ctx, appCtx.Credential)
+	ctx = context.WithValue(ctx, cConstants.CtxKeyInnerAPIPSM, conf.InnerAPIPSM)
+	ctx = context.WithValue(ctx, cConstants.CtxKeyOpenapiDomain, conf.OpenAPIDomain)
+	ctx = context.WithValue(ctx, cConstants.CtxKeyFaaSInfraDomain, conf.FaaSInfraDomain)
+	ctx = context.WithValue(ctx, cConstants.CtxKeyAGWDomain, conf.InnerAPIDomain)
+	boe := conf.BOE
+	if len(boe) > 0 {
+		ctx = cUtils.SetEnvBoeToCtx(ctx, boe)
+	}
+
+	return ctx
+}
+
+func GetNamespace(ctx context.Context, appCtx *structs.AppCtx) (string, error) {
+	if appCtx != nil && appCtx.Credential != nil && appCtx.Mode == structs.AppModeOpenSDK {
+		tenant, err := appCtx.Credential.GetTenantInfo(ctx)
+		if err != nil {
+			return "", cExceptions.InternalError("GetTenantInfo failed, err: %v", err)
+		}
+		return tenant.Namespace, nil
+	}
+	return cUtils.GetNamespace(), nil
+}
+
+func GetTenantName(ctx context.Context, appCtx *structs.AppCtx) (string, error) {
+	if appCtx != nil && appCtx.Credential != nil && appCtx.Mode == structs.AppModeOpenSDK {
+		tenant, err := appCtx.Credential.GetTenantInfo(ctx)
+		if err != nil {
+			return "", cExceptions.InternalError("GetTenantInfo failed, err: %v", err)
+		}
+		return tenant.Name, nil
+	}
+	return cUtils.GetTenantName(), nil
+}
+
+func ParseInt64(v interface{}) (int64, error) {
+	switch v.(type) {
+	case json.Number:
+		s, err := v.(json.Number).Int64()
+		if err != nil {
+			return s, cExceptions.InvalidParamError("ParseInt64 failed, err: %+v", err)
+		}
+		return s, nil
+	case int:
+		return int64(v.(int)), nil
+	case int32:
+		return int64(v.(int32)), nil
+	case int64:
+		return v.(int64), nil
+	case float64:
+		return int64(v.(float64)), nil
+	case float32:
+		return int64(v.(float32)), nil
+	default:
+		return 0, cExceptions.InvalidParamError("Cannot convert (%v) to int64", v)
+	}
+}
+
+func LocalDebugMode(ctx context.Context) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return cUtils.SetDebugTypeToCtx(ctx, cConstants.DebugTypeLocal)
+}

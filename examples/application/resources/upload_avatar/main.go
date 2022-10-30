@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	app := application.NewApplication("c_e5447a833b4444969f58", "f05f672c28174735ad8fc28060b01b37").Env(constants.PlatformEnvUAT)
+	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 
 	result, err := app.Resources.File.UploadAvatarByPath(context.Background(), "avatar.png", "/Users/zhouweixin/Downloads/avatar.png")
 	if err != nil {

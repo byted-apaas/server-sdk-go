@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	app = NewApplication("xxx", "xxx").Env(constants.PlatformEnvLR)
+	app = NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 	ctx = cUtils.SetDebugTypeToCtx(context.Background(), cConstants.DebugTypeLocal)
 }
 

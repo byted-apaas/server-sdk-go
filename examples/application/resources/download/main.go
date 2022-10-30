@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	app := application.NewApplication("c_e5447a833b4444969f58", "f05f672c28174735ad8fc28060b01b37").Env(constants.PlatformEnvUAT)
+	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 
 	content, err := app.Resources.File.Download(context.Background(), "55edbb98a55e45faa92211dc40578970")
 	if err != nil {

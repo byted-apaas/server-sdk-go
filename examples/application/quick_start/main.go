@@ -29,7 +29,7 @@ func main() {
 	ctx = utils.LocalDebugMode(ctx)
 
 	// 创建实例（注意：1.如何申请 API 凭证；2.Env 是什么）
-	app := application.NewApplication("c_a81a2dbc72f447478ead", "b539814d85bb48efb54b9bc6201c7160").Env(constants.PlatformEnvDEV)
+	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvOnline)
 
 	// 创建变量接收查询的结果
 	var users []*User

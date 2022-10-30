@@ -26,7 +26,7 @@ type TestObject struct {
 }
 
 func main() {
-	app := application.NewApplication("c_c9c02f05c7c14131a6b4", "b85740891cbd419c86887c47082e9e13").Env(constants.PlatformEnvDEV)
+	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 
 	// 批量创建
 	records1, err := app.Data.Object("testObject").BatchCreate(context.Background(),

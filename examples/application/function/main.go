@@ -14,7 +14,7 @@ import (
 func main() {
 	ctx := context.Background()
 	// 在这里补充业务代码
-	app := application.NewApplication("c_d2d7429d1ddb4755a973", "a19303a91c224d80a765f54c9ac86abb").Env(constants.PlatformEnvLR)
+	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 	ctx = utils.LocalDebugMode(ctx)
 
 	var result interface{}

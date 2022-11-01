@@ -27,4 +27,7 @@ var (
 	GetVar    = global_config.GetVar
 	Tools     = tools.NewTools(nil)
 	User      = user.NewUser(nil)
+	//Flow      = flow.NewFlow(nil)
+	////GetContext 获得一些上游传入的系统上下文参数
+	//GetContext = user.GetContext
 )

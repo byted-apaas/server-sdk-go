@@ -49,3 +49,8 @@ const (
 	OperationTypeBatchDelete
 	OperationTypeBatchUpdateSameValue
 )
+
+const (
+	OpRateLimitError = "k_op_ec_20003"
+	FsRateLimitError = "k_fs_ec_000004"
+)

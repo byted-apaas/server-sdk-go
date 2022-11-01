@@ -8,6 +8,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"time"
 
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
@@ -15,9 +16,12 @@ import (
 )
 
 type IFile interface {
-	UploadByPath(ctx context.Context, fileName, path string, expireSeconds int64) (*structs.Attachment, error)
-	UploadByReader(ctx context.Context, fileName string, reader io.Reader, expireSeconds int64) (*structs.Attachment, error)
-	UploadByBuffer(ctx context.Context, fileName string, buffer []byte, expireSeconds int64) (*structs.Attachment, error)
+	// UploadByPath 精度是 second, 0 值不过期
+	UploadByPath(ctx context.Context, fileName, path string, expire time.Duration) (*structs.Attachment, error)
+	// UploadByReader 精度是 second, 0 值不过期
+	UploadByReader(ctx context.Context, fileName string, reader io.Reader, expire time.Duration) (*structs.Attachment, error)
+	// UploadByBuffer 精度是 second, 0 值不过期
+	UploadByBuffer(ctx context.Context, fileName string, buffer []byte, expire time.Duration) (*structs.Attachment, error)
 	Download(ctx context.Context, fileID string) ([]byte, error)
 }
 
@@ -29,20 +33,20 @@ func NewFile(s *structs.AppCtx) *File {
 	return &File{appCtx: s}
 }
 
-func (f *File) UploadByPath(ctx context.Context, fileName, path string, expireSeconds int64) (*structs.Attachment, error) {
+func (f *File) UploadByPath(ctx context.Context, fileName, path string, expire time.Duration) (*structs.Attachment, error) {
 	fileReader, err := os.Open(path)
 	if err != nil {
 		return nil, cExceptions.InvalidParamError("UploadByPath failed, err: %v", err)
 	}
-	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, fileReader, expireSeconds)
+	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, fileReader, expire)
 }
 
-func (f *File) UploadByReader(ctx context.Context, fileName string, reader io.Reader, expireSeconds int64) (*structs.Attachment, error) {
-	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, reader, expireSeconds)
+func (f *File) UploadByReader(ctx context.Context, fileName string, reader io.Reader, expire time.Duration) (*structs.Attachment, error) {
+	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, reader, expire)
 }
 
-func (f *File) UploadByBuffer(ctx context.Context, fileName string, buffer []byte, expireSeconds int64) (*structs.Attachment, error) {
-	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, bytes.NewReader(buffer), expireSeconds)
+func (f *File) UploadByBuffer(ctx context.Context, fileName string, buffer []byte, expire time.Duration) (*structs.Attachment, error) {
+	return request.GetInstance(ctx).UploadFile(ctx, f.appCtx, fileName, bytes.NewReader(buffer), expire)
 }
 
 func (f *File) Download(ctx context.Context, fileID string) ([]byte, error) {

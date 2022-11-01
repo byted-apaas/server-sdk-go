@@ -3,10 +3,9 @@
 
 package opensdk
 
-type Multilingual struct {
-	En string `json:"en_US,omitempty"`
-	Zh string `json:"zh_CN,omitempty"`
-}
+import "github.com/byted-apaas/server-sdk-go/common/structs"
+
+type Multilingual = structs.Multilingual
 
 type PhoneNumber struct {
 	CountryCode string `json:"countryCode"`

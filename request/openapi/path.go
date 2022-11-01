@@ -26,7 +26,7 @@ const (
 	PathDownloadAvatar = "/api/attachment/v1/images/:fileID"
 
 	// PathGetRecords 老版接口
-	PathGetRecords  = "/generic/data/v2/namespaces/:namespace/objects/:objectAPIName/mGetByCriterion"
+	PathGetRecords  = "/generic/data/v3/namespaces/:namespace/objects/:objectAPIName/mGetByCriterion"
 	PathTransaction = "/generic/datax/v2/namespaces/:namespace/records/_modify_with_transaction"
 	PathOql         = "/data/v5/namespaces/:namespace/records/query"
 
@@ -57,6 +57,11 @@ const (
 
 	PathInvokeFunctionWithAuth = "/api/cloudfunction/v1/namespaces/:namespace/invoke/:functionAPIName"
 	PathInvokeFunctionAsync    = "/faasAsyncTask/v1/namespaces/:namespace/asyncTask/CreateAsyncTask"
+
+	PathGetTaskListByExecutionID = "/api/flow/v1/namespaces/:namespace/executions/:executionId/userTaskInfo"
+	PathGetExecutionInfo         = "/api/flow/v1/namespaces/:namespace/executions/:executionId/detail"
+	PathRevokeExecution          = "/api/flow/v1/namespaces/:namespace/executions/:executionId/revoke"
+	PathExecuteFlow              = "/api/flow/v1/namespaces/:namespace/flows/:apiName/execute"
 )
 
 // GetPathGetRecordsV2 新版接口
@@ -179,4 +184,20 @@ func GetPathInvokeFunctionWithAuth(namespace, functionAPIName string) string {
 
 func GetPathInvokeFunctionAsync(namespace string) string {
 	return cUtils.NewPathReplace(PathInvokeFunctionAsync).Namespace(namespace).Path()
+}
+
+func GetExecutionUserTaskInfo(namespace string, executionID int64) string {
+	return cUtils.NewPathReplace(PathGetTaskListByExecutionID).Namespace(namespace).ExecutionID(executionID).Path()
+}
+
+func GetPathGetExecutionInfo(namespace string, executionID int64) string {
+	return cUtils.NewPathReplace(PathGetExecutionInfo).Namespace(namespace).ExecutionID(executionID).Path()
+}
+
+func GetPathRevokeExecution(namespace string, executionID int64) string {
+	return cUtils.NewPathReplace(PathRevokeExecution).Namespace(namespace).ExecutionID(executionID).Path()
+}
+
+func GetPathExecuteFlow(namespace, APIName string) string {
+	return cUtils.NewPathReplace(PathExecuteFlow).Namespace(namespace).APIName(APIName).Path()
 }

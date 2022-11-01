@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 	"sync"
+	"time"
 
 	cStructs "github.com/byted-apaas/server-common-go/structs"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
@@ -44,7 +45,7 @@ type IRequestOpenapi interface {
 
 	DownloadFile(ctx context.Context, appCtx *structs.AppCtx, fileID string) ([]byte, error)
 	DownloadAvatar(ctx context.Context, appCtx *structs.AppCtx, imageID string) ([]byte, error)
-	UploadFile(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader, seconds int64) (*structs.Attachment, error)
+	UploadFile(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader, seconds time.Duration) (*structs.Attachment, error)
 	UploadFileV2(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader) (*structs.FileUploadResult, error)
 	UploadAvatar(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader) (*structs.Avatar, error)
 
@@ -62,6 +63,12 @@ type IRequestOpenapi interface {
 	InvokeFunctionAsync(ctx context.Context, appCtx *structs.AppCtx, apiName string, params map[string]interface{}) (int64, error)
 
 	GetTenantInfo(ctx context.Context, appCtx *structs.AppCtx) (*cStructs.Tenant, error)
+
+	GetExecutionUserTaskInfo(ctx context.Context, appCtx *structs.AppCtx, instanceID int64) ([]*structs.TaskInfo, error)
+
+	Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error)
+	RevokeExecution(ctx context.Context, appCtx *structs.AppCtx, instanceID int64, options *structs.RevokeOptions) error
+	GetExecutionInfo(ctx context.Context, appCtx *structs.AppCtx, instanceID int64) (*structs.ExecutionInfo, error)
 }
 
 //go:generate mockery --name=IRequestOpenapi --structname=RequestOpenapi --filename=RequestOpenapi.go

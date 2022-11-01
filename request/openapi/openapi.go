@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
@@ -18,12 +20,116 @@ import (
 	cStructs "github.com/byted-apaas/server-common-go/structs"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
+	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	reqCommon "github.com/byted-apaas/server-sdk-go/request/common"
 	"github.com/tidwall/gjson"
 )
 
 type RequestHttp struct{}
+
+func (r *RequestHttp) Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.ExecuteFlow)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]interface{}{
+		"variables": utils.ParseMapToFlowVariable(options.Params),
+		"operator":  cUtils.GetUserIDFromCtx(ctx),
+		"loopMasks": cUtils.GetLoopMaskFromCtx(ctx),
+	}
+
+	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathExecuteFlow(namespace, APIName), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	var inRes intern.FlowExecuteResult
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[execute] failed, err: %v", err)
+	}
+	return &structs.FlowExecuteResult{
+		ExecutionID: inRes.ExecutionID,
+		Status:      structs.ExecutionStatus(inRes.Status),
+		Data:        utils.ParseFlowVariableToMap(inRes.OutParams),
+		ErrCode:     inRes.ErrCode,
+		ErrMsg:      inRes.ErrMsg,
+	}, nil
+}
+
+func (r *RequestHttp) RevokeExecution(ctx context.Context, appCtx *structs.AppCtx, executionID int64, options *structs.RevokeOptions) error {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.RevokeExecution)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return err
+	}
+
+	body := map[string]interface{}{
+		"operator": cUtils.GetUserIDFromCtx(ctx),
+		"reason":   options.Reason,
+	}
+
+	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathRevokeExecution(namespace, executionID), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RequestHttp) GetExecutionInfo(ctx context.Context, appCtx *structs.AppCtx, executionID int64) (instanceInfo *structs.ExecutionInfo, err error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetExecutionInfo)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathGetExecutionInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	raw := gjson.GetBytes(data, "executionInfo").Raw
+
+	var inRes intern.ExecutionInfo
+	err = cUtils.JsonUnmarshalBytes([]byte(raw), &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[GetExecutionInfo] failed, err: %v", err)
+	}
+
+	return &structs.ExecutionInfo{
+		Status:  structs.ExecutionStatus(inRes.Status),
+		Data:    utils.ParseFlowVariableToMap(inRes.OutParams),
+		ErrCode: inRes.ErrCode,
+		ErrMsg:  inRes.ErrMsg,
+	}, nil
+}
+
+func (r *RequestHttp) GetExecutionUserTaskInfo(ctx context.Context, appCtx *structs.AppCtx, executionID int64) (taskInfoList []*structs.TaskInfo, err error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetExecutionUserTaskInfo)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetExecutionUserTaskInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	raw := gjson.GetBytes(data, "taskList").Raw
+	err = cUtils.JsonUnmarshalBytes([]byte(raw), &taskInfoList)
+	if err != nil {
+		return nil, cExceptions.InternalError("[GetExecutionUserTaskInfo] result decode failed: %v", err)
+	}
+	return
+}
 
 func (r *RequestHttp) GetTenantInfo(ctx context.Context, appCtx *structs.AppCtx) (*cStructs.Tenant, error) {
 	return appCtx.Credential.GetTenantInfo(utils.SetCtx(ctx, appCtx, cConstants.GetAppToken))
@@ -530,20 +636,22 @@ func (r *RequestHttp) DownloadAvatar(ctx context.Context, appCtx *structs.AppCtx
 	return data, nil
 }
 
-func (r *RequestHttp) UploadFile(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader, expireSeconds int64) (*structs.Attachment, error) {
+func (r *RequestHttp) UploadFile(ctx context.Context, appCtx *structs.AppCtx, fileName string, fileReader io.Reader, expireSeconds time.Duration) (*structs.Attachment, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.UploadAttachment)
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
 
-	if expireSeconds > 0 {
-		err := writer.WriteField("expireSeconds", strconv.FormatInt(expireSeconds, 10))
-		if err != nil {
-			return nil, cExceptions.InternalError("UploadFile create expireSeconds failed, err: %v", err)
-		}
+	if expireSeconds < time.Second && expireSeconds != 0 {
+		return nil, cExceptions.InvalidParamError("expire time should be larger than one second or zero.")
 	}
 
-	err := writer.WriteField("ignoreUserId", "true")
+	err := writer.WriteField("expireSeconds", strconv.FormatInt(int64(expireSeconds.Seconds()), 10))
+	if err != nil {
+		return nil, cExceptions.InternalError("UploadFile create expireSeconds failed, err: %v", err)
+	}
+
+	err = writer.WriteField("ignoreUserId", "true")
 	if err != nil {
 		return nil, cExceptions.InternalError("UploadFile create ignoreUserId failed, err: %v", err)
 	}
@@ -812,8 +920,11 @@ func (r *RequestHttp) InvokeFunctionWithAuth(ctx context.Context, appCtx *struct
 	if err != nil {
 		return err
 	}
+	headers := map[string][]string{
+		cConstants.HttpHeaderKeyUser: {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
+	}
 
-	respBody, extra, err := getOpenapiClient().PostJson(ctx, GetPathInvokeFunctionWithAuth(namespace, apiName), nil, body, cHttp.AppTokenMiddleware)
+	respBody, extra, err := getOpenapiClient().PostJson(ctx, GetPathInvokeFunctionWithAuth(namespace, apiName), headers, body, cHttp.AppTokenMiddleware)
 	data, err := errorWrapper(respBody, extra, err)
 	if err != nil {
 		return err
@@ -860,7 +971,7 @@ func (r *RequestHttp) InvokeFunctionAsync(ctx context.Context, appCtx *structs.A
 	}
 	headers := map[string][]string{
 		cConstants.HttpHeaderKeyTenant: {tenantName},
-		cConstants.HttpHeaderKeyUser:   {"-1"},
+		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))

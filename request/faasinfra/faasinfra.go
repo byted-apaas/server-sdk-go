@@ -6,6 +6,7 @@ package faasinfra
 import (
 	"context"
 	"reflect"
+	"strconv"
 	"sync"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
@@ -52,7 +53,7 @@ func (r *requestFaaSInfra) InvokeFunction(ctx context.Context, appCtx *structs.A
 	}
 	headers := map[string][]string{
 		cConstants.HttpHeaderKeyTenant: {tenantName},
-		cConstants.HttpHeaderKeyUser:   {"-1"},
+		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
 	data, err := errorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunction(namespace), headers, body, cHttp.AppTokenMiddleware))
@@ -84,7 +85,7 @@ func (r *requestFaaSInfra) InvokeFunctionAsync(ctx context.Context, appCtx *stru
 	}
 	headers := map[string][]string{
 		cConstants.HttpHeaderKeyTenant: {tenantName},
-		cConstants.HttpHeaderKeyUser:   {"-1"},
+		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
 	data, err := errorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))
@@ -96,8 +97,13 @@ func (r *requestFaaSInfra) InvokeFunctionAsync(ctx context.Context, appCtx *stru
 }
 
 func (r *requestFaaSInfra) InvokeFunctionDistributed(ctx context.Context, appCtx *structs.AppCtx, dataset interface{}, handlerFunc string, progressCallbackFunc string, completedCallbackFunc string, options *tasks.Options) (int64, error) {
-	if _, ok := dataset.([]interface{}); !ok {
-		return 0, cExceptions.InvalidParamError("The type of dataset should be []interface, but %s", reflect.TypeOf(dataset))
+	v := reflect.ValueOf(dataset)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Slice {
+		return 0, cExceptions.InvalidParamError("The type of dataset should be slice, but %s", v.Kind())
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -110,7 +116,7 @@ func (r *requestFaaSInfra) InvokeFunctionDistributed(ctx context.Context, appCtx
 	}
 	headers := map[string][]string{
 		cConstants.HttpHeaderKeyTenant: {tenantName},
-		cConstants.HttpHeaderKeyUser:   {"-1"},
+		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
 	lookMask := cUtils.GetLoopMaskFromCtx(ctx)

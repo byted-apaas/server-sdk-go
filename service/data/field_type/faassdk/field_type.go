@@ -3,18 +3,15 @@
 
 package faassdk
 
+import "github.com/byted-apaas/server-sdk-go/common/structs/intern"
+
 const (
-	ZH = 2052
-	EN = 1033
+	ZH = intern.LanguageCodeZH
+	EN = intern.LanguageCodeEN
 )
 
 // Multilingual 多语结构
-type Multilingual []*MultilingualItem
-
-type MultilingualItem struct {
-	LanguageCode int    `json:"language_code"`
-	Text         string `json:"text"`
-}
+type Multilingual = intern.Multilingual
 
 // PhoneNumber 电话号码
 type PhoneNumber struct {

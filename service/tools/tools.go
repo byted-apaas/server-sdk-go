@@ -7,9 +7,12 @@ import (
 	"context"
 	"time"
 
+	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cStructs "github.com/byted-apaas/server-common-go/structs"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/common/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
+	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/request"
 )
 
@@ -18,6 +21,11 @@ type ITools interface {
 	Retry(f func() error, option *RetryOption) error
 	// GetTenantInfo 获取租户信息工具
 	GetTenantInfo(ctx context.Context) (*cStructs.Tenant, error)
+	// SetLaneNameToCtx 设置泳道环境, 只在调试模式下生效
+	SetLaneNameToCtx(ctx context.Context, lane string) context.Context
+
+	// ParseErr 转换 err 为有结构的错误，若 err 非系统返回的，则 code 为 ErrCodeDeveloperError
+	ParseErr(ctx context.Context, err error) *exceptions.BaseError
 }
 
 // RetryOption 重试选项
@@ -52,4 +60,12 @@ func (t *Tools) GetTenantInfo(ctx context.Context) (*cStructs.Tenant, error) {
 		}
 	}
 	return request.GetInstance(ctx).GetTenantInfo(ctx, t.appCtx)
+}
+
+func (t *Tools) SetLaneNameToCtx(ctx context.Context, lane string) context.Context {
+	return utils.SetLaneNameToCtx(ctx, lane)
+}
+
+func (t *Tools) ParseErr(ctx context.Context, err error) *exceptions.BaseError {
+	return cExceptions.ParseErrForUser(err)
 }

@@ -9,9 +9,14 @@ import (
 
 type UserContext = cStructs.UserContext
 
-// GetContext 获得一些上游传入的系统上下文参数
+// GetContext 获得一些上游传入的系统上下文参数, 指定特定结构
 func GetContext(ctx context.Context) UserContext {
 	return cUtils.GetUserContext(ctx)
+}
+
+// GetContextMap 获得一些上游传入的系统上下文参数, Map 通用结构
+func GetContextMap(ctx context.Context) map[string]interface{} {
+	return cUtils.GetUserContextMap(ctx)
 }
 
 //type IUserContext interface {

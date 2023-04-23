@@ -13,7 +13,7 @@ import (
 type IData interface {
 	Object(objectAPIName string) IObject
 	NewTransaction() ITransaction
-	Oql(oql string) IOql
+	Oql(oql string, args ...interface{}) IOql
 }
 
 //go:generate mockery --name=IDataV2 --structname=DataV2 --filename=DataV2.go

@@ -24,6 +24,6 @@ func (d *DataV2) NewTransaction() data.ITransaction {
 	return NewTransaction(d.appCtx)
 }
 
-func (d *DataV2) Oql(oql string) data.IOql {
-	return NewOql(d.appCtx, oql)
+func (d *DataV2) Oql(oql string, args ...interface{}) data.IOql {
+	return NewOql(d.appCtx, oql, args...)
 }

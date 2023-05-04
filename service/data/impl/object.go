@@ -7,7 +7,9 @@ import (
 	"context"
 	"reflect"
 
+	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
+	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/request"
 	"github.com/byted-apaas/server-sdk-go/service/data"
@@ -17,6 +19,7 @@ type Object struct {
 	appCtx        *structs.AppCtx
 	objectAPIName string
 	err           error
+	authType      *string
 }
 
 func NewObject(s *structs.AppCtx, objectAPIName string) *Object {
@@ -32,6 +35,7 @@ func NewObject(s *structs.AppCtx, objectAPIName string) *Object {
 }
 
 func (o *Object) Create(ctx context.Context, record interface{}) (*structs.RecordID, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return nil, err
 	}
@@ -43,6 +47,7 @@ func (o *Object) Create(ctx context.Context, record interface{}) (*structs.Recor
 }
 
 func (o *Object) BatchCreate(ctx context.Context, records interface{}) ([]int64, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return nil, err
 	}
@@ -54,6 +59,7 @@ func (o *Object) BatchCreate(ctx context.Context, records interface{}) ([]int64,
 }
 
 func (o *Object) BatchCreateAsync(ctx context.Context, records interface{}) (int64, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return 0, err
 	}
@@ -62,6 +68,7 @@ func (o *Object) BatchCreateAsync(ctx context.Context, records interface{}) (int
 }
 
 func (o *Object) Update(ctx context.Context, _id int64, record interface{}) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
 	}
@@ -73,6 +80,7 @@ func (o *Object) Update(ctx context.Context, _id int64, record interface{}) erro
 }
 
 func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{}) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
 	}
@@ -84,6 +92,7 @@ func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{})
 }
 
 func (o *Object) BatchUpdateAsync(ctx context.Context, records map[int64]interface{}) (int64, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return 0, err
 	}
@@ -92,6 +101,7 @@ func (o *Object) BatchUpdateAsync(ctx context.Context, records map[int64]interfa
 }
 
 func (o *Object) Delete(ctx context.Context, _id int64) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
 	}
@@ -103,6 +113,7 @@ func (o *Object) Delete(ctx context.Context, _id int64) error {
 }
 
 func (o *Object) BatchDelete(ctx context.Context, _ids []int64) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
 	}
@@ -114,6 +125,7 @@ func (o *Object) BatchDelete(ctx context.Context, _ids []int64) error {
 }
 
 func (o *Object) BatchDeleteAsync(ctx context.Context, _ids []int64) (int64, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return 0, err
 	}
@@ -125,59 +137,69 @@ func (o *Object) Count(ctx context.Context) (int64, error) {
 	if err := o.check(); err != nil {
 		return 0, err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Count(ctx)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Count(ctx)
 }
 
 func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.err).FindStream(ctx, recordType, handler)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindStream(ctx, recordType, handler)
 }
 
 func (o *Object) FindAll(ctx context.Context, records interface{}) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.err).FindAll(ctx, records)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindAll(ctx, records)
 }
 
 func (o *Object) Find(ctx context.Context, records interface{}) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Find(ctx, records)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Find(ctx, records)
 }
 
 func (o *Object) FindOne(ctx context.Context, record interface{}) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.err).FindOne(ctx, record)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindOne(ctx, record)
 }
 
 func (o *Object) Where(condition interface{}) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Where(condition)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Where(condition)
 }
 
 func (o *Object) Offset(offset int64) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Offset(offset)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Offset(offset)
 }
 
 func (o *Object) Limit(limit int64) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Limit(limit)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Limit(limit)
 }
 
 func (o *Object) OrderBy(fieldAPINames ...string) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).OrderBy(fieldAPINames...)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).OrderBy(fieldAPINames...)
 }
 
 func (o *Object) OrderByDesc(fieldAPINames ...string) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).OrderByDesc(fieldAPINames...)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).OrderByDesc(fieldAPINames...)
 }
 
 func (o *Object) Select(fieldAPINames ...string) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).Select(fieldAPINames...)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Select(fieldAPINames...)
+}
+
+func (o *Object) UseUserAuth() data.IObject {
+	o.authType = cUtils.StringPtr(cConstants.AuthTypeUser)
+	return o
+}
+
+func (o *Object) UseSystemAuth() data.IObject {
+	o.authType = cUtils.StringPtr(cConstants.AuthTypeSystem)
+	return o
 }
 
 func (o *Object) check() error {

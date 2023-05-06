@@ -28,6 +28,8 @@ type TestObject struct {
 func main() {
 	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
 
+
+
 	// 创建记录1
 	record1, err := app.Data.Object("testObject").Create(context.Background(),
 		&TestObject{

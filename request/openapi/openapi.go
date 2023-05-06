@@ -19,6 +19,7 @@ import (
 	cHttp "github.com/byted-apaas/server-common-go/http"
 	cStructs "github.com/byted-apaas/server-common-go/structs"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
@@ -139,8 +140,8 @@ func (r *RequestHttp) GetRecords(ctx context.Context, appCtx *structs.AppCtx, ob
 	if param == nil {
 		param = &structs.GetRecordsReqParam{}
 	}
-	if param.Limit <= 0 || param.Limit > 200 {
-		param.Limit = 200
+	if param.Limit <= 0 {
+		param.Limit = constants.PageLimitMax
 	}
 	param.NeedFilterUserPermission = false
 	param.IgnoreBackLookupField = false
@@ -170,8 +171,8 @@ func (r *RequestHttp) GetRecordsV2(ctx context.Context, appCtx *structs.AppCtx, 
 	if param == nil {
 		param = &structs.GetRecordsReqParamV2{}
 	}
-	if param.Limit <= 0 || param.Limit > 200 {
-		param.Limit = 200
+	if param.Limit <= 0 {
+		param.Limit = constants.PageLimitMax
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)

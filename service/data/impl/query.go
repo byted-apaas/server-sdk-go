@@ -25,6 +25,7 @@ type Query struct {
 	appCtx        *structs.AppCtx
 	objectAPIName string
 	limit         int64
+	isSetLimit    bool
 	offset        int64
 	fields        []string
 	order         []*structs.Order
@@ -63,6 +64,18 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 	}
 }
 
+func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+	if q.err != nil {
+		return q.err
+	}
+
+	if q.appCtx.IsOpenSDK() {
+		// 走 limit offset 翻页
+		return q.findStreamByLimitOffsetV2(ctx, recordType, handler)
+	}
+	return q.findStreamByLimitOffset(ctx, recordType, handler)
+}
+
 func (q *Query) FindAll(ctx context.Context, records interface{}) error {
 	if q.appCtx.IsOpenSDK() {
 		return q.findAllV2(ctx, records)
@@ -71,6 +84,9 @@ func (q *Query) FindAll(ctx context.Context, records interface{}) error {
 }
 
 func (q *Query) Find(ctx context.Context, records interface{}) error {
+	// 校验
+	q.findCheck(ctx)
+
 	if q.err != nil {
 		return q.err
 	}
@@ -107,6 +123,9 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 }
 
 func (q *Query) FindOne(ctx context.Context, record interface{}) error {
+	// 校验
+	q.findCheck(ctx)
+
 	if q.err != nil {
 		return q.err
 	}
@@ -235,14 +254,7 @@ func (q *Query) Offset(offset int64) data.IQuery {
 }
 
 func (q *Query) Limit(limit int64) data.IQuery {
-	if q.err != nil {
-		return q
-	}
-
-	if limit < 1 || limit > constants.PageLimitMax {
-		q.err = cExceptions.InvalidParamError("Query.Limit received invalid value (%d), should be 1~%d", limit, constants.PageLimitMax)
-	}
-
+	q.isSetLimit = true
 	q.limit = limit
 	return q
 }
@@ -555,6 +567,128 @@ func (q *Query) buildCriterionV2(filter *cond2.LogicalExpression) []interface{} 
 	return conditions
 }
 
+func CheckAndGetSlice(recordType reflect.Type) (reflect.Value, error) {
+	// recordType 可以是对象，也可以是指针
+	if recordType.Kind() == reflect.Ptr {
+		recordType = recordType.Elem()
+	}
+
+	if recordType.Kind() != reflect.Interface && recordType.Kind() != reflect.Struct && recordType.Kind() != reflect.Map {
+		return reflect.Value{}, cExceptions.InvalidParamError("recordType should be interface{}, struct or map, but %s", recordType)
+	}
+
+	return reflect.MakeSlice(reflect.SliceOf(recordType), 0, 0), nil
+}
+
+func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+	reflectResults, err := CheckAndGetSlice(recordType)
+	if err != nil {
+		return err
+	}
+
+	criterion, err := q.buildCriterion(ctx, q.filter)
+	if err != nil {
+		return err
+	}
+
+	param := &structs.GetRecordsReqParam{
+		Limit:          constants.PageLimitMax,
+		Offset:         q.offset,
+		FieldApiNames:  q.fields,
+		Order:          q.order,
+		Criterion:      criterion,
+		NeedTotalCount: false,
+	}
+
+	// 未设置 limit 时，不通过 limit 判断结束条件
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitMax {
+		param.Offset = i
+		param.Limit = func() int64 {
+			if !q.isSetLimit {
+				return constants.PageLimitMax
+			}
+			if q.offset+q.limit-i < constants.PageLimitMax {
+				return q.offset + q.limit - i
+			}
+			return constants.PageLimitMax
+		}()
+		if param.Limit <= 0 {
+			break
+		}
+
+		var perRecords = reflect.New(reflectResults.Type())
+		err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if err != nil {
+			return err
+		}
+
+		if perRecords.Elem().Len() > 0 {
+			err = handler(ctx, perRecords.Interface())
+			if err != nil {
+				return err
+			}
+		}
+
+		if perRecords.Elem().Len() < constants.PageLimitMax {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+	reflectResults, err := CheckAndGetSlice(recordType)
+	if err != nil {
+		return err
+	}
+
+	param := &structs.GetRecordsReqParamV2{
+		Limit:  constants.PageLimitMax,
+		Offset: q.offset,
+		Fields: q.fields,
+		Sort:   q.order,
+		Count:  cUtils.BoolPtr(false),
+		Filter: q.buildCriterionV2(q.filter),
+	}
+
+	// 未设置 limit 时，不通过 limit 判断结束条件
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitMax {
+		param.Offset = i
+		param.Limit = func() int64 {
+			if !q.isSetLimit {
+				return constants.PageLimitMax
+			}
+			if q.offset+q.limit-i < constants.PageLimitMax {
+				return q.offset + q.limit - i
+			}
+			return constants.PageLimitMax
+		}()
+		if param.Limit <= 0 {
+			break
+		}
+
+		var perRecords = reflect.New(reflectResults.Type())
+		err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if err != nil {
+			return err
+		}
+
+		if perRecords.Elem().Len() > 0 {
+			err = handler(ctx, perRecords.Interface())
+			if err != nil {
+				return err
+			}
+		}
+
+		if perRecords.Elem().Len() < constants.PageLimitMax {
+			break
+		}
+	}
+
+	return nil
+}
+
 func (q *Query) findAll(ctx context.Context, records interface{}) error {
 	var (
 		totalRecords []map[string]interface{}
@@ -677,4 +811,14 @@ func (q *Query) findAllV2(ctx context.Context, records interface{}) error {
 		return cExceptions.InvalidParamError("json.Marshal failed: %+v", err)
 	}
 	return nil
+}
+
+func (q *Query) findCheck(ctx context.Context) {
+	if q.err != nil {
+		return
+	}
+
+	if q.limit < 1 {
+		q.err = cExceptions.InvalidParamError("Query.Limit received invalid value (%d), should > 0", q.limit)
+	}
 }

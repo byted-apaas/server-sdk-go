@@ -5,6 +5,7 @@ package data
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 )
@@ -38,7 +39,23 @@ type IObject interface {
 	Count(ctx context.Context) (int64, error)
 	Find(ctx context.Context, records interface{}) error
 	FindOne(ctx context.Context, record interface{}) error
+	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
+	// FindStream 流式查询
+	// @example:
+	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
+	//      var rs []*TestObject
+	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
+	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
+	//			if !ok {
+	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
+	//			}
+	//			rs = append(rs, &o)
+	//		}
+	//
+	//		// doSomething
+	//  })
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -70,7 +87,23 @@ type IObjectV2 interface {
 	Count(ctx context.Context) (int64, error)
 	Find(ctx context.Context, records interface{}) error
 	FindOne(ctx context.Context, record interface{}) error
+	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
+	// FindStream 流式查询
+	// @example:
+	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
+	//      var rs []*TestObject
+	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
+	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
+	//			if !ok {
+	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
+	//			}
+	//			rs = append(rs, &o)
+	//		}
+	//
+	//		// doSomething
+	//  })
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -109,7 +142,23 @@ type IQuery interface {
 	Count(ctx context.Context) (int64, error)
 	Find(ctx context.Context, records interface{}) error
 	FindOne(ctx context.Context, record interface{}) error
+	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
+	// FindStream 流式查询
+	// @example:
+	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
+	//      var rs []*TestObject
+	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
+	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
+	//			if !ok {
+	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
+	//			}
+	//			rs = append(rs, &o)
+	//		}
+	//
+	//		// doSomething
+	//  })
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错

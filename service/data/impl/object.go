@@ -5,6 +5,7 @@ package data
 
 import (
 	"context"
+	"reflect"
 
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
@@ -125,6 +126,13 @@ func (o *Object) Count(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return newQuery(o.appCtx, o.objectAPIName, o.err).Count(ctx)
+}
+
+func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+	if err := o.check(); err != nil {
+		return err
+	}
+	return newQuery(o.appCtx, o.objectAPIName, o.err).FindStream(ctx, recordType, handler)
 }
 
 func (o *Object) FindAll(ctx context.Context, records interface{}) error {

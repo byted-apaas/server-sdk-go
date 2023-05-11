@@ -172,6 +172,10 @@ func (o *Object) Where(condition interface{}) data.IQuery {
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Where(condition)
 }
 
+func (o *Object) FuzzySearch(keyword string, fieldAPINames []string) data.IQuery {
+	return newQuery(o.appCtx, o.objectAPIName, o.err).FuzzySearch(keyword, fieldAPINames)
+}
+
 func (o *Object) Offset(offset int64) data.IQuery {
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Offset(offset)
 }

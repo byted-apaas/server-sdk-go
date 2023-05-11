@@ -27,6 +27,7 @@ type Query struct {
 	objectAPIName string
 	limit         int64
 	isSetLimit    bool
+	fuzzySearch   *structs.FuzzySearch
 	offset        int64
 	fields        []string
 	order         []*structs.Order
@@ -55,6 +56,7 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 			FieldApiNames:  q.fields,
 			Order:          q.order,
 			NeedTotalCount: true,
+			FuzzySearch:    q.fuzzySearch,
 		}
 
 		if criterion, err := q.buildCriterion(ctx, q.filter); err != nil {
@@ -122,6 +124,7 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 			Order:          q.order,
 			NeedTotalCount: false,
 			Criterion:      criterion,
+			FuzzySearch:    q.fuzzySearch,
 		}
 
 		return request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, records)
@@ -161,6 +164,7 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 			FieldApiNames:  q.fields,
 			Order:          q.order,
 			NeedTotalCount: false,
+			FuzzySearch:    q.fuzzySearch,
 		}
 
 		if criterion, e := q.buildCriterion(ctx, q.filter); e != nil {
@@ -244,6 +248,38 @@ func (q *Query) Where(condition interface{}) data.IQuery {
 		q.filter.AddArithmeticExpression(v)
 	default:
 		q.err = cExceptions.InvalidParamError("Query.Where received invalid type, should be *cond.LogicalExpression or *cond.ArithmeticExpression, but received %s ", reflect.TypeOf(condition))
+	}
+	return q
+}
+
+func (q *Query) FuzzySearch(keyword string, fieldAPINames []string) data.IQuery {
+	if q.err != nil {
+		return q
+	}
+
+	if q.appCtx != nil && q.appCtx.IsOpenSDK() {
+		q.err = cExceptions.InvalidParamError("OpenSDK does not implement FuzzySearch")
+		return q
+	}
+
+	if q.fuzzySearch != nil {
+		q.err = cExceptions.InvalidParamError("FuzzySearch can only be called once")
+		return q
+	}
+
+	if keyword == "" {
+		q.err = cExceptions.InvalidParamError("FuzzySearch's keyword can not be empty")
+		return q
+	}
+
+	if len(fieldAPINames) == 0 {
+		q.err = cExceptions.InvalidParamError("FuzzySearch's fieldAPINames can not be empty")
+		return q
+	}
+
+	q.fuzzySearch = &structs.FuzzySearch{
+		Keyword:       keyword,
+		FieldAPINames: fieldAPINames,
 	}
 	return q
 }
@@ -616,6 +652,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 		Order:          q.order,
 		Criterion:      criterion,
 		NeedTotalCount: false,
+		FuzzySearch:    q.fuzzySearch,
 	}
 
 	// 未设置 limit 时，不通过 limit 判断结束条件

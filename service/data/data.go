@@ -71,6 +71,9 @@ type IObject interface {
 	OrderBy(fieldAPINames ...string) IQuery
 	OrderByDesc(fieldAPINames ...string) IQuery
 	Select(fieldAPINames ...string) IQuery
+
+	UseUserAuth() IObject
+	UseSystemAuth() IObject
 }
 
 //go:generate mockery --name=IObjectV2 --structname=ObjectV2 --filename=ObjectV2.go
@@ -125,6 +128,9 @@ type IObjectV2 interface {
 type ITransaction interface {
 	Object(objectAPIName string) ITransactionObject
 	Commit(ctx context.Context) error
+
+	UseUserAuth() ITransaction
+	UseSystemAuth() ITransaction
 }
 
 //go:generate mockery --name=ITransactionObject --structname=TransactionObject --filename=TransactionObject.go
@@ -178,5 +184,7 @@ type IQuery interface {
 
 //go:generate mockery --name=IOql --structname=Oql --filename=Oql.go
 type IOql interface {
+	UseUserAuth() IOql
+	UseSystemAuth() IOql
 	Execute(ctx context.Context, resultSet interface{}) error
 }

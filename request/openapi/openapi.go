@@ -243,7 +243,7 @@ func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 
 	body := map[string]interface{}{
 		"data":     record,
-		"operator": -1,
+		"operator": cUtils.GetUserIDFromCtx(ctx),
 		"task_id":  cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 
@@ -293,8 +293,9 @@ func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.App
 
 	body := map[string]interface{}{
 		"data":               records,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     2,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -347,7 +348,7 @@ func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *struct
 
 	body := map[string]interface{}{
 		"data":               records,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 
@@ -376,7 +377,7 @@ func (r *RequestHttp) UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 	body := map[string]interface{}{
 		"record_id": recordID,
 		"data":      record,
-		"operator":  -1,
+		"operator":  cUtils.GetUserIDFromCtx(ctx),
 		"task_id":   cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -405,8 +406,9 @@ func (r *RequestHttp) BatchUpdateRecord(ctx context.Context, appCtx *structs.App
 
 	body := map[string]interface{}{
 		"data":               records,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     2,
 	}
 	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
@@ -453,7 +455,7 @@ func (r *RequestHttp) BatchUpdateRecordAsync(ctx context.Context, appCtx *struct
 
 	body := map[string]interface{}{
 		"data":               records,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -479,7 +481,7 @@ func (r *RequestHttp) DeleteRecord(ctx context.Context, appCtx *structs.AppCtx, 
 
 	body := map[string]interface{}{
 		"record_id": recordID,
-		"operator":  -1,
+		"operator":  cUtils.GetUserIDFromCtx(ctx),
 		"task_id":   cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -508,8 +510,9 @@ func (r *RequestHttp) BatchDeleteRecord(ctx context.Context, appCtx *structs.App
 
 	body := map[string]interface{}{
 		"record_id_list":     recordIDs,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     2,
 	}
 	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
@@ -540,7 +543,7 @@ func (r *RequestHttp) BatchDeleteRecordAsync(ctx context.Context, appCtx *struct
 
 	body := map[string]interface{}{
 		"record_id_list":     recordIDs,
-		"operator":           -1,
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -565,10 +568,11 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 	}
 
 	body := map[string]interface{}{
-		"placeholders": placeholders,
-		"operations":   operations,
-		"operatorId":   -1,
-		"taskId":       cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"placeholders":   placeholders,
+		"operations":     operations,
+		"operatorId":     cUtils.GetUserIDFromCtx(ctx),
+		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"setSystemField": 1,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))

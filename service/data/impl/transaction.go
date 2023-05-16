@@ -7,7 +7,9 @@ import (
 	"context"
 	"reflect"
 
+	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
+	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/request"
 	"github.com/byted-apaas/server-sdk-go/service/data"
@@ -21,6 +23,7 @@ type Transaction struct {
 	operations   []*structs.TransactionOperation         // 操作集
 	isCommitted  bool                                    // 是否已提交
 	err          error                                   // 错误
+	authType     *string
 }
 
 func NewTransaction(s *structs.AppCtx) data.ITransaction {
@@ -36,6 +39,7 @@ func (t *Transaction) Object(objectAPIName string) data.ITransactionObject {
 }
 
 func (t *Transaction) Commit(ctx context.Context) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, t.authType)
 	if t.err != nil {
 		return t.err
 	}
@@ -80,4 +84,14 @@ func (t *Transaction) Commit(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (t *Transaction) UseUserAuth() data.ITransaction {
+	t.authType = cUtils.StringPtr(cConstants.AuthTypeUser)
+	return t
+}
+
+func (t *Transaction) UseSystemAuth() data.ITransaction {
+	t.authType = cUtils.StringPtr(cConstants.AuthTypeSystem)
+	return t
 }

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
@@ -31,9 +32,11 @@ type Query struct {
 	order         []*structs.Order
 	filter        *cond2.LogicalExpression
 	err           error
+	authType      *string
 }
 
 func (q *Query) Count(ctx context.Context) (int64, error) {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	if q.appCtx.IsOpenSDK() {
 		param := &structs.GetRecordsReqParamV2{
 			Limit:  1,
@@ -65,6 +68,7 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 }
 
 func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	if q.err != nil {
 		return q.err
 	}
@@ -77,6 +81,7 @@ func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler
 }
 
 func (q *Query) FindAll(ctx context.Context, records interface{}) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	if q.appCtx.IsOpenSDK() {
 		return q.findAllV2(ctx, records)
 	}
@@ -84,6 +89,7 @@ func (q *Query) FindAll(ctx context.Context, records interface{}) error {
 }
 
 func (q *Query) Find(ctx context.Context, records interface{}) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
 
@@ -123,6 +129,7 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 }
 
 func (q *Query) FindOne(ctx context.Context, record interface{}) error {
+	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
 
@@ -180,7 +187,7 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 	return nil
 }
 
-func newQuery(s *structs.AppCtx, objectAPIName string, err error) *Query {
+func newQuery(s *structs.AppCtx, objectAPIName string, authType *string, err error) *Query {
 	q := &Query{
 		appCtx:        s,
 		objectAPIName: objectAPIName,
@@ -189,6 +196,7 @@ func newQuery(s *structs.AppCtx, objectAPIName string, err error) *Query {
 		fields:        []string{},
 		order:         []*structs.Order{},
 		filter:        cond2.NewLogicalExpression(op.And, nil, nil),
+		authType:      authType,
 	}
 
 	if err != nil {
@@ -293,6 +301,16 @@ func (q *Query) Select(fieldAPINames ...string) data.IQuery {
 	}
 
 	q.fields = append(q.fields, fieldAPINames...)
+	return q
+}
+
+func (q *Query) UseUserAuth() data.IQuery {
+	q.authType = cUtils.StringPtr(cConstants.AuthTypeUser)
+	return q
+}
+
+func (q *Query) UseSystemAuth() data.IQuery {
+	q.authType = cUtils.StringPtr(cConstants.AuthTypeSystem)
 	return q
 }
 

@@ -21,15 +21,21 @@ type RecordsResult struct {
 	Total   int64         `json:"total"`
 }
 
+type FuzzySearch struct {
+	Keyword       string   `json:"keyword"`
+	FieldAPINames []string `json:"fieldAPINames"`
+}
+
 type GetRecordsReqParam struct {
-	Criterion                interface{} `json:"criterion"`
-	Order                    []*Order    `json:"order"`
-	FieldApiNames            []string    `json:"field_api_names"`
-	Offset                   int64       `json:"offset"`
-	Limit                    int64       `json:"limit"`
-	NeedTotalCount           bool        `json:"need_total_count"`
-	IgnoreBackLookupField    bool        `json:"ignore_back_lookup_field"`
-	NeedFilterUserPermission bool        `json:"need_filter_user_permission"`
+	Criterion                interface{}  `json:"criterion"`
+	Order                    []*Order     `json:"order"`
+	FieldApiNames            []string     `json:"field_api_names"`
+	Offset                   int64        `json:"offset"`
+	Limit                    int64        `json:"limit"`
+	NeedTotalCount           bool         `json:"need_total_count"`
+	IgnoreBackLookupField    bool         `json:"ignore_back_lookup_field"`
+	NeedFilterUserPermission bool         `json:"need_filter_user_permission"`
+	FuzzySearch              *FuzzySearch `json:"fuzzySearch"`
 }
 
 type GetRecordsReqParamV2 struct {

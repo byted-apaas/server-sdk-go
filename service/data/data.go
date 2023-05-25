@@ -66,6 +66,11 @@ type IObject interface {
 	//     cond.Gt(...)
 	// @return 返回查询对象
 	Where(condition interface{}) IQuery
+	// FuzzySearch 模糊查询：与 where 之间是与关系
+	// @param keyword 模糊查询的关键字，必填且不可以为空串
+	// @param fieldAPINames 『可搜索字段』的字段列表，不可为空
+	// @example: FuzzySearch("张三", []string{"_name"})
+	FuzzySearch(keyword string, fieldAPINames []string) IQuery
 	Offset(offset int64) IQuery
 	Limit(limit int64) IQuery
 	OrderBy(fieldAPINames ...string) IQuery
@@ -175,6 +180,11 @@ type IQuery interface {
 	//     cond.Gt(...)
 	// @return 返回查询对象
 	Where(condition interface{}) IQuery
+	// FuzzySearch 模糊查询：与 where 之间是与关系
+	// @param keyword 模糊查询的关键字，必填且不可以为空串
+	// @param fieldAPINames 『可搜索字段』的字段列表，不可为空
+	// @example: FuzzySearch("张三", []string{"_name"})
+	FuzzySearch(keyword string, fieldAPINames []string) IQuery
 	Offset(offset int64) IQuery
 	Limit(limit int64) IQuery
 	OrderBy(fieldAPINames ...string) IQuery

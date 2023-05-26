@@ -173,7 +173,7 @@ func (o *Object) Where(condition interface{}) data.IQuery {
 }
 
 func (o *Object) FuzzySearch(keyword string, fieldAPINames []string) data.IQuery {
-	return newQuery(o.appCtx, o.objectAPIName, o.err).FuzzySearch(keyword, fieldAPINames)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FuzzySearch(keyword, fieldAPINames)
 }
 
 func (o *Object) Offset(offset int64) data.IQuery {

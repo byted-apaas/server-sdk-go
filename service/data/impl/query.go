@@ -14,6 +14,7 @@ import (
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
+	"github.com/byted-apaas/server-sdk-go/common/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/request"
@@ -181,7 +182,7 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 	}
 
 	if len(records) < 1 {
-		return cExceptions.InvalidParamError("record not found")
+		return exceptions.ErrTypeRecordNotFound
 	}
 
 	err = cUtils.Decode(records[0], record)

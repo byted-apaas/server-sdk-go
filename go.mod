@@ -3,7 +3,7 @@ module github.com/byted-apaas/server-sdk-go
 go 1.16
 
 require (
-	github.com/byted-apaas/server-common-go v0.0.5
+	github.com/byted-apaas/server-common-go v0.0.6-0.20230530111631-09fc00ed84e5
 	github.com/google/uuid v1.3.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/stretchr/testify v1.8.0

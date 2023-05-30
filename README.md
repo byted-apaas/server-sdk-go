@@ -1,5 +1,8 @@
 ## server-sdk-go 版本说明：
 
+-------
+### 版本：0.0.18 兼容升级
+优化：废弃 GetContext().Flow.Variables 相关的 API
 
 -------
 ### 版本：0.0.17 兼容升级

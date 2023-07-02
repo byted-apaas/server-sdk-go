@@ -62,6 +62,10 @@ const (
 	PathGetExecutionInfo         = "/api/flow/v1/namespaces/:namespace/executions/:executionId/detail"
 	PathRevokeExecution          = "/api/flow/v1/namespaces/:namespace/executions/:executionId/revoke"
 	PathExecuteFlow              = "/api/flow/v1/namespaces/:namespace/flows/:apiName/execute"
+	PathDefaultTenantAccessToken = "/api/integration/v1/namespaces/:namespace/defaultLark/tenantAccessToken"
+	PathDefaultAppAccessToken    = "/api/integration/v1/namespaces/:namespace/defaultLark/appAccessToken"
+	PathAppAccessToken           = "/api/integration/v1/namespaces/:namespace/lark/appAccessToken/:apiName"
+	PathTenantAccessToken        = "/api/integration/v1/namespaces/:namespace/lark/tenantAccessToken/:apiName"
 )
 
 // GetPathGetRecordsV2 新版接口
@@ -201,3 +205,20 @@ func GetPathRevokeExecution(namespace string, executionID int64) string {
 func GetPathExecuteFlow(namespace, APIName string) string {
 	return cUtils.NewPathReplace(PathExecuteFlow).Namespace(namespace).APIName(APIName).Path()
 }
+
+func GetDefaultAppAccessTokenPath(namespace string) string {
+	return cUtils.NewPathReplace(PathDefaultAppAccessToken).Namespace(namespace).Path()
+}
+
+func GetDefaultTenantAccessTokenPath(namespace string) string {
+	return cUtils.NewPathReplace(PathDefaultTenantAccessToken).Namespace(namespace).Path()
+}
+
+func GetAppAccessTokenPath(namespace, apiName string) string {
+	return cUtils.NewPathReplace(PathAppAccessToken).Namespace(namespace).APIName(apiName).Path()
+}
+
+func GetTenantAccessTokenPath(namespace, apiName string) string {
+	return cUtils.NewPathReplace(PathTenantAccessToken).Namespace(namespace).APIName(apiName).Path()
+}
+

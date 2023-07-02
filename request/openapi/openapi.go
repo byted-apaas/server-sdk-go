@@ -1235,3 +1235,95 @@ func (r *RequestHttp) InvokeFunctionAsync(ctx context.Context, appCtx *structs.A
 
 	return gjson.GetBytes(data, "task_id").Int(), nil
 }
+
+func (r *RequestHttp) GetTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.TenantAccessToken, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetIntegrationTenantAccessToken)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetTenantAccessTokenPath(namespace, apiName), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+	var inRes intern.TenantAccessToken
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[GetTenantAccessToken] failed, err: %v", err)
+	}
+	return &structs.TenantAccessToken{
+		Expire:            inRes.Expire,
+		TenantAccessToken: inRes.TenantAccessToken,
+		AppID:             inRes.AppID,
+	}, nil
+}
+
+func (r *RequestHttp) GetAppAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.AppAccessToken, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetIntegrationAppAccessToken)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetAppAccessTokenPath(namespace, apiName), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+	var inRes intern.AppAccessToken
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[GetTenantAccessToken] failed, err: %v", err)
+	}
+	return &structs.AppAccessToken{
+		Expire:         inRes.Expire,
+		AppAccessToken: inRes.AppAccessToken,
+		AppID:          inRes.AppID,
+	}, nil
+}
+
+func (r *RequestHttp) GetDefaultTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.TenantAccessToken, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetDefaultIntegrationTenantAccessToken)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetDefaultTenantAccessTokenPath(namespace), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+	var inRes intern.TenantAccessToken
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[GetTenantAccessToken] failed, err: %v", err)
+	}
+	return &structs.TenantAccessToken{
+		Expire:            inRes.Expire,
+		TenantAccessToken: inRes.TenantAccessToken,
+		AppID:             inRes.AppID,
+	}, nil
+}
+
+func (r *RequestHttp) GetDefaultAppAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.AppAccessToken, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetDefaultIntegrationAppAccessToken)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetDefaultAppAccessTokenPath(namespace), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+	var inRes intern.AppAccessToken
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InvalidParamError("[GetTenantAccessToken] failed, err: %v", err)
+	}
+	return &structs.AppAccessToken{
+		Expire:         inRes.Expire,
+		AppAccessToken: inRes.AppAccessToken,
+		AppID:          inRes.AppID,
+	}, nil
+}

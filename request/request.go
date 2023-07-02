@@ -70,6 +70,10 @@ type IRequestOpenapi interface {
 	Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error)
 	RevokeExecution(ctx context.Context, appCtx *structs.AppCtx, instanceID int64, options *structs.RevokeOptions) error
 	GetExecutionInfo(ctx context.Context, appCtx *structs.AppCtx, instanceID int64) (*structs.ExecutionInfo, error)
+	GetTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.TenantAccessToken, error)
+	GetAppAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.AppAccessToken, error)
+	GetDefaultTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.TenantAccessToken, error)
+	GetDefaultAppAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.AppAccessToken, error)
 }
 
 //go:generate mockery --name=IRequestOpenapi --structname=RequestOpenapi --filename=RequestOpenapi.go

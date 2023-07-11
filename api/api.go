@@ -1,6 +1,31 @@
 // Copyright 2022 ByteDance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
+// Package api is deprecated. Please use the new package instead.
+//
+// Deprecated: This package is no longer maintained. Please refer to the example below to use the other new packages.
+//
+// Example:
+//
+//  1. api(code.byted.org/byted-apaas/server-sdk-go) -> application(code.byted.org/byted-apaas/server-sdk-go)
+//     api.Data -> application.Data
+//     api.Metadata -> application.Metadata
+//     api.Resources -> application.Resources
+//     api.Msg -> application.Msg
+//     api.GetLogger -> application.GetLogger
+//     api.GetVar -> application.GlobalVar
+//     api.Tools.GetTenantInfo -> application.Tenant.GetTenantInfo
+//     api.User -> application.User
+//     api.Flow -> application.Flow
+//     api.GetContext -> application.GetContext
+//     api.GetContextMap -> application.GetContextMap
+//
+//  2. api(code.byted.org/byted-apaas/server-sdk-go) -> baas(code.byted.org/byted-apaas/baas-sdk-go)
+//     api.Tasks -> baas.Tasks
+//
+//  3. api(code.byted.org/byted-apaas/server-sdk-go) -> faas(code.byted.org/byted-apaas/faas-sdk-go)
+//     api.Function -> faas.Function
+//     api.Tools -> faas.Tools
 package api
 
 import (

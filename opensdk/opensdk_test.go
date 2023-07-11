@@ -199,7 +199,7 @@ func TestFunctionInvoke(t *testing.T) {
 var fileID string
 
 func TestUploadAttachment(t *testing.T) {
-	result, err := app.Resources.File.UploadByPath(ctx, "application_test.go", "application_test.go")
+	result, err := app.Resources.File.UploadByPath(ctx, "opensdk_test.go", "opensdk_test.go")
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
 	fileID = result.FileID

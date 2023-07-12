@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+
+	cStructs "github.com/byted-apaas/server-common-go/structs"
 )
 
 type IApp interface {

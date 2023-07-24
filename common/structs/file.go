@@ -12,7 +12,7 @@ type FileUploadResult struct {
 
 type Attachment struct {
 	ID       string `json:"id"`
-	MimeType string `json:"type"`
+	MimeType string `json:"mime_type"`
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
 	Token    string `json:"token"`

@@ -1,6 +1,8 @@
 package exceptions
 
 import (
+	"fmt"
+
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 )
 
@@ -49,3 +51,11 @@ func IsRecordNotFoundErr(err error) bool {
 	}
 	return cExceptions.ErrWrap(err).Code == ErrCode_Data_RecordNotFound
 }
+
+var (
+	ErrRecordIsEmpty     = fmt.Errorf("record is empty")
+	ErrFieldNotFound     = fmt.Errorf("field not found")
+	ErrFieldTypeNotMatch = fmt.Errorf("field type not match")
+	ErrFieldIsEmpty      = fmt.Errorf("field is empty")
+	ErrFieldNoPermission = fmt.Errorf("field no permission")
+)

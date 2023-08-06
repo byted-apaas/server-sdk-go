@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 
-	cStructs "github.com/byted-apaas/server-common-go/structs"
+	"github.com/byted-apaas/server-sdk-go/common/structs"
 )
 
 type IApp interface {
 	// GetAppInfo 获取应用信息
-	GetAppInfo(ctx context.Context) (*cStructs.AppInfo, error)
+	GetAppInfo(ctx context.Context) (*structs.AppInfo, error)
 }

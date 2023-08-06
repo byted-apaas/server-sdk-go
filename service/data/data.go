@@ -24,23 +24,23 @@ type IDataV2 interface {
 
 //go:generate mockery --name=IObject --structname=Object --filename=Object.go
 type IObject interface {
-	Create(ctx context.Context, record interface{}) (*structs.RecordID, error)
-	BatchCreate(ctx context.Context, records interface{}) ([]int64, error)
-	BatchCreateAsync(ctx context.Context, records interface{}) (int64, error)
+	Create(ctx context.Context, record interface{}) (id *structs.RecordID, err error)
+	BatchCreate(ctx context.Context, records interface{}) (ids []int64, err error)
+	BatchCreateAsync(ctx context.Context, records interface{}) (taskID int64, err error)
 
-	Update(ctx context.Context, recordID int64, record interface{}) error
-	BatchUpdate(ctx context.Context, records map[int64]interface{}) error
-	BatchUpdateAsync(ctx context.Context, records map[int64]interface{}) (int64, error)
+	Update(ctx context.Context, recordID int64, record interface{}) (err error)
+	BatchUpdate(ctx context.Context, records map[int64]interface{}, result ...interface{}) (err error)
+	BatchUpdateAsync(ctx context.Context, records map[int64]interface{}) (taskID int64, err error)
 
-	Delete(ctx context.Context, recordID int64) error
-	BatchDelete(ctx context.Context, recordIDs []int64) error
-	BatchDeleteAsync(ctx context.Context, recordIDs []int64) (int64, error)
+	Delete(ctx context.Context, recordID int64) (err error)
+	BatchDelete(ctx context.Context, recordIDs []int64, result ...interface{}) (err error)
+	BatchDeleteAsync(ctx context.Context, recordIDs []int64) (taskID int64, err error)
 
-	Count(ctx context.Context) (int64, error)
-	Find(ctx context.Context, records interface{}) error
-	FindOne(ctx context.Context, record interface{}) error
+	Count(ctx context.Context) (count int64, err error)
+	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) (err error)
+	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) (err error)
 	// Deprecated: Use FindStream instead.
-	FindAll(ctx context.Context, records interface{}) error
+	FindAll(ctx context.Context, records interface{}) (err error)
 	// FindStream 流式查询
 	// @example:
 	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
@@ -55,7 +55,7 @@ type IObject interface {
 	//
 	//		// doSomething
 	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) (err error)
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -87,14 +87,20 @@ type IObjectV2 interface {
 	BatchCreate(ctx context.Context, records interface{}) ([]int64, error)
 
 	Update(ctx context.Context, recordID int64, record interface{}) error
-	BatchUpdate(ctx context.Context, records map[int64]interface{}) error
+	BatchUpdate(ctx context.Context, records map[int64]interface{}, result ...interface{}) error
 
 	Delete(ctx context.Context, recordID int64) error
-	BatchDelete(ctx context.Context, recordIDs []int64) error
+	BatchDelete(ctx context.Context, recordIDs []int64, result ...interface{}) error
 
 	Count(ctx context.Context) (int64, error)
-	Find(ctx context.Context, records interface{}) error
-	FindOne(ctx context.Context, record interface{}) error
+	// Find 查询记录，最多 200条
+	// @param records 返回的记录
+	// @param unauthFields 返回的无权限字段，类型为 [][]string，第一维对应 records 中的第 x 个记录，第二维表示无权限字段的列表
+	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) error
+	// FindOne 查询1条记录
+	// @param record 返回的记录
+	// @param unauthFields 返回的无权限字段，类型为 []string，表示无权限字段的列表
+	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) error
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
@@ -111,7 +117,7 @@ type IObjectV2 interface {
 	//
 	//		// doSomething
 	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -132,7 +138,7 @@ type IObjectV2 interface {
 //go:generate mockery --name=ITransaction --structname=Transaction --filename=Transaction.go
 type ITransaction interface {
 	Object(objectAPIName string) ITransactionObject
-	Commit(ctx context.Context) error
+	Commit(ctx context.Context) (err error)
 
 	UseUserAuth() ITransaction
 	UseSystemAuth() ITransaction
@@ -140,10 +146,10 @@ type ITransaction interface {
 
 //go:generate mockery --name=ITransactionObject --structname=TransactionObject --filename=TransactionObject.go
 type ITransactionObject interface {
-	RegisterCreate(record interface{}) (*structs.TransactionRecordID, error)
+	RegisterCreate(record interface{}) (id *structs.TransactionRecordID, err error)
 	RegisterUpdate(recordID interface{}, record interface{})
 	RegisterDelete(recordID interface{})
-	RegisterBatchCreate(records interface{}) ([]interface{}, error)
+	RegisterBatchCreate(records interface{}) (ids []interface{}, err error)
 	RegisterBatchUpdate(records interface{})
 	RegisterBatchDelete(recordIDs interface{})
 }
@@ -151,8 +157,14 @@ type ITransactionObject interface {
 //go:generate mockery --name=IQuery --structname=Query --filename=Query.go
 type IQuery interface {
 	Count(ctx context.Context) (int64, error)
-	Find(ctx context.Context, records interface{}) error
-	FindOne(ctx context.Context, record interface{}) error
+	// Find 查询记录，最多 200条
+	// @param records 返回的记录
+	// @param unauthFields 返回的无权限字段，类型为 [][]string，第一维对应 records 中的第 x 个记录，第二维表示无权限字段的列表
+	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) error
+	// FindOne 查询1条记录
+	// @param record 返回的记录
+	// @param unauthFields 返回的无权限字段，类型为 []string，表示无权限字段的列表
+	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) error
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
@@ -169,7 +181,7 @@ type IQuery interface {
 	//
 	//		// doSomething
 	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错
@@ -190,11 +202,13 @@ type IQuery interface {
 	OrderBy(fieldAPINames ...string) IQuery
 	OrderByDesc(fieldAPINames ...string) IQuery
 	Select(fieldAPINames ...string) IQuery
+	UseUserAuth() IQuery
+	UseSystemAuth() IQuery
 }
 
 //go:generate mockery --name=IOql --structname=Oql --filename=Oql.go
 type IOql interface {
 	UseUserAuth() IOql
 	UseSystemAuth() IOql
-	Execute(ctx context.Context, resultSet interface{}) error
+	Execute(ctx context.Context, resultSet interface{}, unauthFields ...interface{}) (err error)
 }

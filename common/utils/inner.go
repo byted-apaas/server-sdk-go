@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 	"runtime"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
@@ -142,4 +143,29 @@ func ParseFlowVariableToMap(variables intern.ExecuteFlowVariables) map[string]in
 		res[variable.APIName] = variable.Value
 	}
 	return res
+}
+
+func StrInStrs(strs []string, str string) bool {
+	for _, v := range strs {
+		if str == v {
+			return true
+		}
+	}
+	return false
+}
+
+func ParseBatchResult(resp *structs.BatchResult, result interface{}) error {
+	if resp == nil {
+		return nil
+	}
+
+	switch result.(type) {
+	case *structs.BatchResult:
+		reflect.ValueOf(result).Elem().Set(reflect.ValueOf(*resp))
+	case **structs.BatchResult:
+		reflect.ValueOf(result).Elem().Elem().Set(reflect.ValueOf(*resp))
+	default:
+		return cExceptions.InvalidParamError("the type of result should be *structs.BatchResult or **structs.BatchResult, but %T", result)
+	}
+	return nil
 }

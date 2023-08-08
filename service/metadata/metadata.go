@@ -19,9 +19,9 @@ type IMetadata interface {
 // IObject 对象读写接口
 type IObject interface {
 	// GetFields 读取对象的字段元数据信息列表
-	GetFields(ctx context.Context, fields interface{}) error
+	GetFields(ctx context.Context, fields interface{}) (err error)
 	// GetField 读取指定字段的元数据信息
-	GetField(ctx context.Context, fieldAPIName string, field interface{}) error
+	GetField(ctx context.Context, fieldAPIName string, field interface{}) (err error)
 }
 
 type Metadata struct {

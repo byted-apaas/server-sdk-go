@@ -3,9 +3,12 @@ module github.com/byted-apaas/server-sdk-go
 go 1.16
 
 require (
-	github.com/byted-apaas/server-common-go v0.0.9
+	github.com/byted-apaas/server-common-go v0.0.19
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021
 	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.14.2
 	go.mongodb.org/mongo-driver v1.10.1 // indirect

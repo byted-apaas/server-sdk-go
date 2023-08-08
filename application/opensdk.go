@@ -16,10 +16,10 @@ import (
 )
 
 type Application struct {
-	Data      data.IDataV2
-	Resources *resources_v2.Resources
-	Tools     tools.ITools
-	appCtx    *structs.AppCtx
+	Data        data.IDataV2
+	Resources   *resources_v2.Resources
+	Tools       tools.ITools
+	appCtx      *structs.AppCtx
 }
 
 func NewApplication(clientID, clientSecret string) *Application {
@@ -28,10 +28,10 @@ func NewApplication(clientID, clientSecret string) *Application {
 		Credential: cHttp.NewAppCredential(clientID, clientSecret),
 	}
 	return &Application{
-		Data:      dataImpl.NewDataV2(appCtx),
-		Resources: resources_v2.NewResources(appCtx),
-		Tools:     tools.NewTools(appCtx),
-		appCtx:    appCtx,
+		Data:        dataImpl.NewDataV2(appCtx),
+		Resources:   resources_v2.NewResources(appCtx),
+		Tools:       tools.NewTools(appCtx),
+		appCtx:      appCtx,
 	}
 }
 

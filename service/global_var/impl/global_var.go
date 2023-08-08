@@ -16,7 +16,7 @@ func NewGlobalVar(s *structs.AppCtx) global_var.IGlobalVar {
 	return &GlobalVar{appCtx: s}
 }
 
-func (GlobalVar) GetVar(ctx context.Context, key string) (string, error) {
+func (g *GlobalVar) GetVar(ctx context.Context, key string) (string, error) {
 	return global_config.GetVar(ctx, key)
 }
 

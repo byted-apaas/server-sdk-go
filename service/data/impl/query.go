@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
@@ -21,6 +22,8 @@ import (
 	"github.com/byted-apaas/server-sdk-go/service/data"
 	cond2 "github.com/byted-apaas/server-sdk-go/service/data/cond"
 	"github.com/byted-apaas/server-sdk-go/service/data/op"
+	"github.com/byted-apaas/server-sdk-go/service/std_record"
+	"github.com/muesli/cache2go"
 )
 
 type Query struct {
@@ -39,6 +42,10 @@ type Query struct {
 
 func (q *Query) Count(ctx context.Context) (int64, error) {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
+	if q.err != nil {
+		return 0, q.err
+	}
+
 	if q.appCtx.IsOpenSDK() {
 		param := &structs.GetRecordsReqParamV2{
 			Limit:  1,
@@ -70,14 +77,13 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 	}
 }
 
-func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	if q.err != nil {
 		return q.err
 	}
 
 	if q.appCtx.IsOpenSDK() {
-		// 走 limit offset 翻页
 		return q.findStreamByLimitOffsetV2(ctx, recordType, handler)
 	}
 	return q.findStreamByLimitOffset(ctx, recordType, handler)
@@ -85,13 +91,22 @@ func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler
 
 func (q *Query) FindAll(ctx context.Context, records interface{}) error {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
+	if q.err != nil {
+		return q.err
+	}
+
+	if len(q.order) > 0 {
+		return cExceptions.InvalidParamError("FindAll does not support orderBy and orderByDesc")
+	}
+
 	if q.appCtx.IsOpenSDK() {
 		return q.findAllV2(ctx, records)
 	}
 	return q.findAll(ctx, records)
 }
 
-func (q *Query) Find(ctx context.Context, records interface{}) error {
+func (q *Query) Find(ctx context.Context, records interface{}, unauthFields ...interface{}) (err error) {
+	var unauthFieldResult [][]string
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
@@ -99,7 +114,6 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 	if q.err != nil {
 		return q.err
 	}
-
 	// OpenSDK 走新接口，因为新接口有权限控制
 	if q.appCtx.IsOpenSDK() {
 		param := &structs.GetRecordsReqParamV2{
@@ -111,9 +125,10 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 			Count:  cUtils.BoolPtr(false),
 		}
 
-		return request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, records)
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, records)
 	} else {
-		criterion, err := q.buildCriterion(ctx, q.filter)
+		var criterion *cond2.Criterion
+		criterion, err = q.buildCriterion(ctx, q.filter)
 		if err != nil {
 			return err
 		}
@@ -128,11 +143,20 @@ func (q *Query) Find(ctx context.Context, records interface{}) error {
 			FuzzySearch:    q.fuzzySearch,
 		}
 
-		return request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, records)
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, records)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	if len(unauthFields) > 0 {
+		return utils.ParseUnauthFields(unauthFieldResult, unauthFields[0])
+	}
+	return nil
 }
 
-func (q *Query) FindOne(ctx context.Context, record interface{}) error {
+func (q *Query) FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) (err error) {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
@@ -142,8 +166,8 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 	}
 
 	var (
-		records []interface{}
-		err     error
+		records           []interface{}
+		unauthFieldResult [][]string
 	)
 
 	// OpenSDK 走新接口，因为新接口有权限控制
@@ -157,7 +181,7 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 			Count:  cUtils.BoolPtr(false),
 		}
 
-		err = request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, &records)
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, &records)
 	} else {
 		param := &structs.GetRecordsReqParam{
 			Limit:          1,
@@ -174,9 +198,8 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 			param.Criterion = criterion
 		}
 
-		err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, &records)
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, &records)
 	}
-
 	if err != nil {
 		return err
 	}
@@ -185,9 +208,30 @@ func (q *Query) FindOne(ctx context.Context, record interface{}) error {
 		return exceptions.ErrTypeRecordNotFound
 	}
 
-	err = cUtils.Decode(records[0], record)
-	if err != nil {
-		return cExceptions.InternalError("Decode failed: %+v", err)
+	_, ok1 := record.(*std_record.Record)
+	_, ok2 := record.(**std_record.Record)
+	if ok1 || ok2 {
+		var newRecord map[string]interface{}
+		err = cUtils.Decode(records[0], &newRecord)
+		if err != nil {
+			return cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
+		}
+
+		ptrValue := reflect.New(reflect.TypeOf(record).Elem())
+		ptrValue.Elem().FieldByName("Record").Set(reflect.ValueOf(newRecord))
+		if len(unauthFieldResult) > 0 {
+			ptrValue.Elem().FieldByName("UnauthFields").Set(reflect.ValueOf(unauthFieldResult[0]))
+		}
+		reflect.ValueOf(record).Elem().Set(ptrValue.Elem())
+	} else {
+		err = cUtils.Decode(records[0], record)
+		if err != nil {
+			return cExceptions.InvalidParamError("Decode failed: %+v", err)
+		}
+	}
+
+	if len(unauthFields) > 0 {
+		return utils.ParseUnauthFields(unauthFieldResult, unauthFields[0])
 	}
 	return nil
 }
@@ -196,7 +240,7 @@ func newQuery(s *structs.AppCtx, objectAPIName string, authType *string, err err
 	q := &Query{
 		appCtx:        s,
 		objectAPIName: objectAPIName,
-		limit:         constants.PageLimitMax,
+		limit:         constants.PageLimitDefault,
 		offset:        0,
 		fields:        []string{},
 		order:         []*structs.Order{},
@@ -248,7 +292,7 @@ func (q *Query) Where(condition interface{}) data.IQuery {
 		v, _ := condition.(*cond2.ArithmeticExpression)
 		q.filter.AddArithmeticExpression(v)
 	default:
-		q.err = cExceptions.InvalidParamError("Query.Where received invalid type, should be *cond.LogicalExpression or *cond.ArithmeticExpression, but received %s ", reflect.TypeOf(condition))
+		q.err = cExceptions.InvalidParamError("Where received invalid type, should be *cond.LogicalExpression or *cond.ArithmeticExpression, but received %s ", reflect.TypeOf(condition))
 	}
 	return q
 }
@@ -299,8 +343,8 @@ func (q *Query) Offset(offset int64) data.IQuery {
 }
 
 func (q *Query) Limit(limit int64) data.IQuery {
-	q.isSetLimit = true
 	q.limit = limit
+	q.isSetLimit = true
 	return q
 }
 
@@ -558,19 +602,26 @@ type ObjectInfo struct {
 	Fields []*FieldInfo `json:"fields"`
 }
 
+var localCache = cache2go.Cache("LookupObjectAPINames")
+
 func (q *Query) getLookupObjectAPINames(ctx context.Context, objectAPIName string, fieldAPINames ...string) (map[string]string, error) {
 	if len(fieldAPINames) == 0 {
 		return nil, nil
 	}
 
-	if len(fieldAPINames) == 1 {
-		field, err := request.GetInstance(ctx).GetField(ctx, q.appCtx, objectAPIName, fieldAPINames[0])
+	successItems, missingItems := q.getLookupObjectAPINamesFromCache(ctx, objectAPIName, fieldAPINames...)
+	if len(missingItems) == 0 {
+		return successItems, nil
+	}
+
+	if len(missingItems) == 1 {
+		field, err := request.GetInstance(ctx).GetField(ctx, q.appCtx, objectAPIName, missingItems[0])
 		if err != nil {
 			return nil, err
 		}
 
 		if field == nil {
-			return nil, cExceptions.InvalidParamError("Relate field (%s) is not exist", fieldAPINames[0])
+			return nil, cExceptions.InvalidParamError("Relate field (%s) is not exist", missingItems[0])
 		}
 
 		var fieldInfo FieldInfo
@@ -579,9 +630,9 @@ func (q *Query) getLookupObjectAPINames(ctx context.Context, objectAPIName strin
 			return nil, cExceptions.InternalError("Decode fieldInfo failed, err: %+v", err)
 		}
 
-		return map[string]string{
-			fmt.Sprintf("%s.%s", objectAPIName, fieldAPINames[0]): fieldInfo.Type.Settings.LookupObjectAPIName,
-		}, nil
+		successItems[fmt.Sprintf("%s.%s", objectAPIName, missingItems[0])] = fieldInfo.Type.Settings.LookupObjectAPIName
+		q.setLookupObjectAPINamesToCache(successItems)
+		return successItems, nil
 	}
 
 	fields, err := request.GetInstance(ctx).GetFields(ctx, q.appCtx, objectAPIName)
@@ -601,7 +652,55 @@ func (q *Query) getLookupObjectAPINames(ctx context.Context, objectAPIName strin
 			objectFieldToLookObjectAPIName[fmt.Sprintf("%s.%s", objectAPIName, field.APIName)] = field.Type.Settings.LookupObjectAPIName
 		}
 	}
+	q.setLookupObjectAPINamesToCache(objectFieldToLookObjectAPIName)
 	return objectFieldToLookObjectAPIName, nil
+}
+
+func (q *Query) getLookupObjectAPINamesFromCache(ctx context.Context, objectAPIName string, fieldAPINames ...string) (map[string]string, []string) {
+	var (
+		res          = make(map[string]string)
+		hasValue     = make(map[string]bool)
+		missingItems []string
+		item         *cache2go.CacheItem
+		cacheVal     string
+		err          error
+	)
+
+	if q.appCtx.IsOpenSDK() {
+		// 其他应用的，暂时不做缓存
+		return res, fieldAPINames
+	}
+
+	for _, fieldAPIName := range fieldAPINames {
+		key := q.buildLookupObjectAPINamesCacheKey(objectAPIName, fieldAPIName)
+		item, err = localCache.Value(key, fieldAPIName)
+		if err == nil && item != nil {
+			cacheVal = item.Data().(string)
+			res[key] = cacheVal
+			hasValue[fieldAPIName] = true
+		}
+	}
+	for _, fieldAPIName := range fieldAPINames {
+		if _, ok := hasValue[fieldAPIName]; !ok {
+			missingItems = append(missingItems, fieldAPIName)
+		}
+	}
+	return res, missingItems
+}
+
+func (q *Query) setLookupObjectAPINamesToCache(apiNames map[string]string) {
+	if q.appCtx.IsOpenSDK() {
+		// 其他应用的，暂时不做缓存
+		return
+	}
+
+	for k, v := range apiNames {
+		localCache.Add(k, time.Minute, v)
+	}
+}
+
+func (q *Query) buildLookupObjectAPINamesCacheKey(objectAPIName string, field string) string {
+	return fmt.Sprintf("%s.%s", objectAPIName, field)
 }
 
 func (q *Query) buildCriterionV2(filter *cond2.LogicalExpression) []interface{} {
@@ -635,7 +734,7 @@ func CheckAndGetSlice(recordType reflect.Type) (reflect.Value, error) {
 	return reflect.MakeSlice(reflect.SliceOf(recordType), 0, 0), nil
 }
 
-func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -647,7 +746,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 	}
 
 	param := &structs.GetRecordsReqParam{
-		Limit:          constants.PageLimitMax,
+		Limit:          constants.PageLimitDefault,
 		Offset:         q.offset,
 		FieldApiNames:  q.fields,
 		Order:          q.order,
@@ -657,35 +756,35 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 	}
 
 	// 未设置 limit 时，不通过 limit 判断结束条件
-	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitMax {
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitDefault {
 		param.Offset = i
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitMax
+				return constants.PageLimitDefault
 			}
-			if q.offset+q.limit-i < constants.PageLimitMax {
+			if q.offset+q.limit-i < constants.PageLimitDefault {
 				return q.offset + q.limit - i
 			}
-			return constants.PageLimitMax
+			return constants.PageLimitDefault
 		}()
 		if param.Limit <= 0 {
 			break
 		}
 
 		var perRecords = reflect.New(reflectResults.Type())
-		err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		unauthFieldResult, err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
 		if err != nil {
 			return err
 		}
 
 		if perRecords.Elem().Len() > 0 {
-			err = handler(ctx, perRecords.Interface())
+			err = handler(ctx, perRecords.Interface(), unauthFieldResult)
 			if err != nil {
 				return err
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitMax {
+		if perRecords.Elem().Len() < constants.PageLimitDefault {
 			break
 		}
 	}
@@ -693,14 +792,14 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 	return nil
 }
 
-func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
 	}
 
 	param := &structs.GetRecordsReqParamV2{
-		Limit:  constants.PageLimitMax,
+		Limit:  constants.PageLimitDefault,
 		Offset: q.offset,
 		Fields: q.fields,
 		Sort:   q.order,
@@ -709,35 +808,35 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 	}
 
 	// 未设置 limit 时，不通过 limit 判断结束条件
-	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitMax {
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitDefault {
 		param.Offset = i
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitMax
+				return constants.PageLimitDefault
 			}
-			if q.offset+q.limit-i < constants.PageLimitMax {
+			if q.offset+q.limit-i < constants.PageLimitDefault {
 				return q.offset + q.limit - i
 			}
-			return constants.PageLimitMax
+			return constants.PageLimitDefault
 		}()
 		if param.Limit <= 0 {
 			break
 		}
 
 		var perRecords = reflect.New(reflectResults.Type())
-		err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		unauthFieldResult, err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
 		if err != nil {
 			return err
 		}
 
 		if perRecords.Elem().Len() > 0 {
-			err = handler(ctx, perRecords.Interface())
+			err = handler(ctx, perRecords.Interface(), unauthFieldResult)
 			if err != nil {
 				return err
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitMax {
+		if perRecords.Elem().Len() < constants.PageLimitDefault {
 			break
 		}
 	}
@@ -768,7 +867,7 @@ func (q *Query) findAll(ctx context.Context, records interface{}) error {
 	criterion.Conditions = append(criterion.Conditions, idCondition)
 
 	param := &structs.GetRecordsReqParam{
-		Limit:          constants.PageLimitMax,
+		Limit:          constants.PageLimitDefault,
 		Offset:         0,
 		FieldApiNames:  q.fields,
 		Criterion:      criterion,
@@ -779,7 +878,7 @@ func (q *Query) findAll(ctx context.Context, records interface{}) error {
 	for {
 		var perRecords []map[string]interface{}
 		idCondition.Right.Settings.Data = maxID
-		err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, &perRecords)
+		_, err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, &perRecords)
 		if err != nil {
 			return err
 		}
@@ -796,7 +895,7 @@ func (q *Query) findAll(ctx context.Context, records interface{}) error {
 			}
 		}
 
-		if len(perRecords) < constants.PageLimitMax {
+		if len(perRecords) < constants.PageLimitDefault {
 			break
 		}
 	}
@@ -824,7 +923,7 @@ func (q *Query) findAllV2(ctx context.Context, records interface{}) error {
 	conditions = append(conditions, idCondition)
 
 	param := &structs.GetRecordsReqParamV2{
-		Limit:  constants.PageLimitMax,
+		Limit:  constants.PageLimitDefault,
 		Offset: 0,
 		Fields: q.fields,
 		Sort:   []*structs.Order{{Field: "_id", Direction: "asc"}},
@@ -835,7 +934,7 @@ func (q *Query) findAllV2(ctx context.Context, records interface{}) error {
 	for {
 		var perRecords []map[string]interface{}
 		idCondition.RightValue = maxID
-		err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, &perRecords)
+		_, err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, &perRecords)
 		if err != nil {
 			return err
 		}
@@ -852,7 +951,7 @@ func (q *Query) findAllV2(ctx context.Context, records interface{}) error {
 			}
 		}
 
-		if len(perRecords) < constants.PageLimitMax {
+		if len(perRecords) < constants.PageLimitDefault {
 			break
 		}
 	}

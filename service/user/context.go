@@ -14,7 +14,7 @@ func GetContext(ctx context.Context) UserContext {
 	return cUtils.GetUserContext(ctx)
 }
 
-// GetContextMap 获得一些上游传入的系统上下文参数, Map 通用结构
+// GetContextMap 获取上游传入的系统上下文参数, Map 通用结构
 func GetContextMap(ctx context.Context) map[string]interface{} {
 	return cUtils.GetUserContextMap(ctx)
 }

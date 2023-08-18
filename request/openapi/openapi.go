@@ -11,6 +11,7 @@ import (
 	"io"
 	"mime/multipart"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	reqCommon "github.com/byted-apaas/server-sdk-go/request/common"
+	"github.com/byted-apaas/server-sdk-go/service/std_record"
 	"github.com/tidwall/gjson"
 )
 
@@ -136,62 +138,176 @@ func (r *RequestHttp) GetTenantInfo(ctx context.Context, appCtx *structs.AppCtx)
 	return appCtx.Credential.GetTenantInfo(utils.SetCtx(ctx, appCtx, cConstants.GetAppToken))
 }
 
-func (r *RequestHttp) GetRecords(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam, records interface{}) error {
+func (r *RequestHttp) getRecordsRequest(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam) (string, [][]string, error) {
 	if param == nil {
 		param = &structs.GetRecordsReqParam{}
 	}
 	if param.Limit <= 0 {
-		param.Limit = constants.PageLimitMax
+		param.Limit = constants.PageLimitDefault
 	}
 	param.NeedFilterUserPermission = false
 	param.IgnoreBackLookupField = false
+	authFieldType := constants.ProcessAuthFieldType_SliceResult
+	param.ProcessAuthFieldType = &authFieldType
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecords(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	recordsRaw := gjson.GetBytes(data, "data_list").Raw
-	err = cUtils.JsonUnmarshalBytes([]byte(recordsRaw), records)
-	if err != nil {
-		return cExceptions.InvalidParamError("GetRecords failed, err: %v", err)
+
+	type UnauthPermissionInfo struct {
+		UnauthFieldSlice [][]string `json:"UnauthFieldSlice"`
 	}
 
-	return nil
+	unauthPermissionInfo := UnauthPermissionInfo{}
+	unauthPermissionInfoStr := gjson.GetBytes(data, "unauthPermissionInfo").Raw
+	if len(unauthPermissionInfoStr) > 0 {
+		err = cUtils.JsonUnmarshalBytes([]byte(unauthPermissionInfoStr), &unauthPermissionInfo)
+		if err != nil {
+			return "", nil, cExceptions.InvalidParamError("GetRecords failed, err: %v", err)
+		}
+	}
+
+	return recordsRaw, unauthPermissionInfo.UnauthFieldSlice, nil
 }
 
-func (r *RequestHttp) GetRecordsV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV2, records interface{}) error {
+func (r *RequestHttp) GetRecords(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam, records interface{}) ([][]string, error) {
+	recordList, unauthFields, err := r.getRecordsRequest(ctx, appCtx, objectAPIName, param)
+	if err != nil {
+		return nil, err
+	}
+
+	if recordList == "" {
+		return nil, nil
+	}
+
+	_, ok1 := records.(*[]std_record.Record)
+	_, ok2 := records.(*[]*std_record.Record)
+	if ok1 || ok2 {
+		var newRecords []map[string]interface{}
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
+		if err != nil {
+			return nil, cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
+		}
+		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, newRecords, unauthFields)
+
+		if len(unauthFields) > 0 && len(unauthFields) != len(newRecords) {
+			return nil, cExceptions.InternalError("len(records) %d != len(unauthFields) %d", len(newRecords), len(unauthFields))
+		}
+
+		rv := reflect.ValueOf(records).Elem()
+		arr := make([]reflect.Value, len(newRecords), len(newRecords))
+		for i, record := range newRecords {
+			v := std_record.Record{
+				Record: record,
+			}
+			if len(unauthFields) > 0 {
+				v.UnauthFields = unauthFields[i]
+			}
+			if ok1 {
+				arr[i] = reflect.ValueOf(v)
+			} else {
+				arr[i] = reflect.ValueOf(&v)
+			}
+		}
+
+		rv.Set(reflect.Append(rv, arr...))
+	} else {
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), records)
+		if err != nil {
+			return nil, cExceptions.InvalidParamError("GetRecords failed, err: %v", err)
+		}
+		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, records, unauthFields)
+	}
+	return unauthFields, nil
+}
+
+func (r *RequestHttp) getRecordsV2Request(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV2) (string, [][]string, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetRecordsV2)
 
 	if param == nil {
 		param = &structs.GetRecordsReqParamV2{}
 	}
 	if param.Limit <= 0 {
-		param.Limit = constants.PageLimitMax
+		param.Limit = constants.PageLimitDefault
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecordsV2(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	recordsRaw := gjson.GetBytes(data, "records").Raw
-	err = cUtils.JsonUnmarshalBytes([]byte(recordsRaw), records)
-	if err != nil {
-		return cExceptions.InvalidParamError("GetRecordsV2 failed, err: %v", err)
+
+	unauthPermissionInfo := structs.UnauthPermissionInfo{}
+	unauthPermissionInfoStr := gjson.GetBytes(data, "unauthPermissionInfo").Raw
+	if len(unauthPermissionInfoStr) > 0 {
+		err = cUtils.JsonUnmarshalBytes([]byte(unauthPermissionInfoStr), &unauthPermissionInfo)
+		if err != nil {
+			return "", nil, cExceptions.InvalidParamError("GetRecordsV2 failed, err: %v", err)
+		}
 	}
 
-	return nil
+	return recordsRaw, unauthPermissionInfo.UnauthFieldSlice, nil
+}
+
+func (r *RequestHttp) GetRecordsV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV2, records interface{}) ([][]string, error) {
+	recordList, unauthFields, err := r.getRecordsV2Request(ctx, appCtx, objectAPIName, param)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ok1 := records.(*[]std_record.Record)
+	_, ok2 := records.(*[]*std_record.Record)
+	if ok1 || ok2 {
+		var newRecords []map[string]interface{}
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
+		if err != nil {
+			return nil, cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
+		}
+		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, recordList, unauthFields)
+
+		if len(unauthFields) > 0 && len(unauthFields) != len(newRecords) {
+			return nil, cExceptions.InternalError("len(records) %d != len(unauthFields) %d", len(newRecords), len(unauthFields))
+		}
+
+		rv := reflect.ValueOf(records).Elem()
+		arr := make([]reflect.Value, len(newRecords), len(newRecords))
+		for i, record := range newRecords {
+			v := std_record.Record{
+				Record: record,
+			}
+			if len(unauthFields) > 0 {
+				v.UnauthFields = unauthFields[i]
+			}
+			if ok1 {
+				arr[i] = reflect.ValueOf(v)
+			} else {
+				arr[i] = reflect.ValueOf(&v)
+			}
+		}
+
+		rv.Set(reflect.Append(rv, arr...))
+	} else {
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), records)
+		if err != nil {
+			return nil, cExceptions.InvalidParamError("GetRecordsV2 failed, err: %v", err)
+		}
+		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, records, unauthFields)
+	}
+	return unauthFields, nil
 }
 
 func (r *RequestHttp) GetRecordCount(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam) (int64, error) {
@@ -239,24 +355,27 @@ func (r *RequestHttp) GetRecordCountV2(ctx context.Context, appCtx *structs.AppC
 }
 
 func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error) {
+	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.CreateRecord)
 
 	body := map[string]interface{}{
-		"data":     record,
-		"operator": cUtils.GetUserIDFromCtx(ctx),
-		"task_id":  cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"data":               []interface{}{newRecord},
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
+		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
 		return nil, err
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+
+	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
 
-	id := gjson.GetBytes(data, "record_id").Int()
+	id := gjson.GetBytes(data, "record_ids").Array()[0].Int()
 	if id == 0 {
 		return nil, cExceptions.InternalError("id is empty, data: %s", string(data))
 	}
@@ -264,6 +383,7 @@ func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 }
 
 func (r *RequestHttp) CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error) {
+	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.CreateRecordV2)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -271,7 +391,7 @@ func (r *RequestHttp) CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateRecordV2(namespace, objectAPIName), nil, record, cHttp.AppTokenMiddleware))
+	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateRecordV2(namespace, objectAPIName), nil, newRecord, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -284,6 +404,7 @@ func (r *RequestHttp) CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 }
 
 func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error) {
+	newRecords := std_record.ConvertStdRecords(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchCreateRecord)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -292,10 +413,10 @@ func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.App
 	}
 
 	body := map[string]interface{}{
-		"data":               records,
+		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     2,
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -313,6 +434,7 @@ func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.App
 }
 
 func (r *RequestHttp) BatchCreateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error) {
+	newRecords := std_record.ConvertStdRecords(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchCreateRecordV2)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -321,7 +443,7 @@ func (r *RequestHttp) BatchCreateRecordV2(ctx context.Context, appCtx *structs.A
 	}
 
 	body := map[string]interface{}{
-		"records": records,
+		"records": newRecords,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -339,6 +461,7 @@ func (r *RequestHttp) BatchCreateRecordV2(ctx context.Context, appCtx *structs.A
 }
 
 func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) (int64, error) {
+	newRecords := std_record.ConvertStdRecords(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchCreateRecordAsync)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -347,7 +470,7 @@ func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *struct
 	}
 
 	body := map[string]interface{}{
-		"data":               records,
+		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
@@ -367,6 +490,7 @@ func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *struct
 }
 
 func (r *RequestHttp) UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error {
+	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.UpdateRecord)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -375,16 +499,19 @@ func (r *RequestHttp) UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 	}
 
 	body := map[string]interface{}{
-		"record_id": recordID,
-		"data":      record,
-		"operator":  cUtils.GetUserIDFromCtx(ctx),
-		"task_id":   cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"data": map[int64]interface{}{
+			recordID: newRecord,
+		},
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
+		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
 func (r *RequestHttp) UpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error {
+	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.UpdateRecordV2)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -392,29 +519,42 @@ func (r *RequestHttp) UpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 		return err
 	}
 
-	_, err = errorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV2(namespace, objectAPIName, recordID), nil, record, cHttp.AppTokenMiddleware))
+	_, err = errorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV2(namespace, objectAPIName, recordID), nil, newRecord, cHttp.AppTokenMiddleware))
 	return err
 }
 
-func (r *RequestHttp) BatchUpdateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) error {
+func (r *RequestHttp) BatchUpdateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) (*structs.BatchResult, error) {
+	newRecords := std_record.ConvertStdRecordsFromMap(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecord)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	body := map[string]interface{}{
-		"data":               records,
+		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     2,
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
-	return err
+	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := struct {
+		ErrMap map[int64]string `json:"err_map"`
+	}{}
+	err = cUtils.JsonUnmarshalBytes(data, &resp)
+	if err != nil {
+		return nil, cExceptions.InternalError("BatchUpdateRecord failed, err: %v", err)
+	}
+	return reqCommon.GenBatchResultByRecords(records, resp.ErrMap), nil
 }
 
 func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) error {
+	newRecords := std_record.ConvertStdRecordsFromMap(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecordV2)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -423,7 +563,7 @@ func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.A
 	}
 
 	newRecordMap := map[int64]map[string]interface{}{}
-	err = cUtils.Decode(records, &newRecordMap)
+	err = cUtils.Decode(newRecords, &newRecordMap)
 	if err != nil {
 		return cExceptions.InvalidParamError("Decode records failed, err: %+v", err)
 	}
@@ -446,6 +586,7 @@ func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.A
 }
 
 func (r *RequestHttp) BatchUpdateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) (int64, error) {
+	newRecords := std_record.ConvertStdRecordsFromMap(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecordAsync)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -454,7 +595,7 @@ func (r *RequestHttp) BatchUpdateRecordAsync(ctx context.Context, appCtx *struct
 	}
 
 	body := map[string]interface{}{
-		"data":               records,
+		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
@@ -480,11 +621,12 @@ func (r *RequestHttp) DeleteRecord(ctx context.Context, appCtx *structs.AppCtx, 
 	}
 
 	body := map[string]interface{}{
-		"record_id": recordID,
-		"operator":  cUtils.GetUserIDFromCtx(ctx),
-		"task_id":   cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"record_id_list":     []int64{recordID},
+		"operator":           cUtils.GetUserIDFromCtx(ctx),
+		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -500,22 +642,34 @@ func (r *RequestHttp) DeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx
 	return err
 }
 
-func (r *RequestHttp) BatchDeleteRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) error {
+func (r *RequestHttp) BatchDeleteRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) (*structs.BatchResult, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchDeleteRecord)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	body := map[string]interface{}{
 		"record_id_list":     recordIDs,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     2,
+		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
-	return err
+	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := struct {
+		ErrMap map[int64]string `json:"err_map"`
+	}{}
+	err = cUtils.JsonUnmarshalBytes(data, &resp)
+	if err != nil {
+		return nil, cExceptions.InternalError("BatchUpdateRecord failed, err: %v", err)
+	}
+
+	return reqCommon.GenBatchResultByRecordIDs(recordIDs, resp.ErrMap), nil
 }
 
 func (r *RequestHttp) BatchDeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) error {
@@ -572,7 +726,7 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"operations":     operations,
 		"operatorId":     cUtils.GetUserIDFromCtx(ctx),
 		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"setSystemField": 1,
+		"setSystemField": constants.CommitSetSystemMod_SysFieldSet,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))
@@ -591,32 +745,82 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 	return result.Placeholders, nil
 }
 
-func (r *RequestHttp) Oql(ctx context.Context, appCtx *structs.AppCtx, oql string, args interface{}, namedArgs map[string]interface{}, records interface{}) error {
+func (r *RequestHttp) oqlRequest(ctx context.Context, appCtx *structs.AppCtx, oql string, args interface{}, namedArgs map[string]interface{}) (rowsRaw string, unauthFields [][]string, err error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.Oql)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	body := map[string]interface{}{
-		"query":     oql,
-		"args":      args,
-		"namedArgs": namedArgs,
-		"compat":    true,
+		"query":        oql,
+		"args":         args,
+		"namedArgs":    namedArgs,
+		"compat":       true,
+		"unauthFields": true,
 	}
 
 	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathOql(namespace), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
-	err = cUtils.JsonUnmarshalBytes([]byte(gjson.GetBytes(data, "rows").Raw), &records)
+	type OqlResult struct {
+		UnauthField [][]string `json:"unauth_field_slice"`
+	}
+	oqlResult := OqlResult{}
+	err = cUtils.JsonUnmarshalBytes(data, &oqlResult)
 	if err != nil {
-		return cExceptions.InternalError("Oql failed, err: %v", err)
+		return "", nil, cExceptions.InternalError("Oql unauthField failed, err: %v", err)
 	}
 
-	return err
+	return gjson.GetBytes(data, "rows").Raw, oqlResult.UnauthField, nil
+}
+
+func (r *RequestHttp) Oql(ctx context.Context, appCtx *structs.AppCtx, oql string, args interface{}, namedArgs map[string]interface{}, records interface{}) (unauthFields [][]string, err error) {
+	recordList, unauthFields, err := r.oqlRequest(ctx, appCtx, oql, args, namedArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ok1 := records.(*[]std_record.Record)
+	_, ok2 := records.(*[]*std_record.Record)
+	if ok1 || ok2 {
+		var newRecords []map[string]interface{}
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
+		if err != nil {
+			return nil, cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
+		}
+
+		if len(unauthFields) > 0 && len(unauthFields) != len(newRecords) {
+			return nil, cExceptions.InternalError("len(records) %d != len(unauthFields) %d", len(newRecords), len(unauthFields))
+		}
+
+		rv := reflect.ValueOf(records).Elem()
+		arr := make([]reflect.Value, len(newRecords), len(newRecords))
+		for i, record := range newRecords {
+			v := std_record.Record{
+				Record: record,
+			}
+			if len(unauthFields) > 0 {
+				v.UnauthFields = unauthFields[i]
+			}
+			if ok1 {
+				arr[i] = reflect.ValueOf(v)
+			} else {
+				arr[i] = reflect.ValueOf(&v)
+			}
+		}
+
+		rv.Set(reflect.Append(rv, arr...))
+	} else {
+		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &records)
+		if err != nil {
+			return nil, cExceptions.InternalError("Oql failed, err: %v", err)
+		}
+	}
+	return unauthFields, nil
 }
 
 func (r *RequestHttp) DownloadFile(ctx context.Context, appCtx *structs.AppCtx, fileID string) ([]byte, error) {
@@ -856,6 +1060,51 @@ func (r *RequestHttp) GetGlobalConfig(ctx context.Context, appCtx *structs.AppCt
 	}
 
 	return "", cExceptions.InvalidParamError("The global config (%s) does not exist", key)
+}
+
+// GetAllGlobalConfig
+func (r *RequestHttp) GetAllGlobalConfig(ctx context.Context, appCtx *structs.AppCtx) (map[string]string, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetAllGlobalConfigs)
+
+	pageSize, offset := 100, 0
+	page := map[string]interface{}{
+		"offset": 0,
+		"limit":  pageSize,
+	}
+	body := map[string]interface{}{
+		"biz_type": "GlobalVariables",
+		"used_by":  "UsedBySystem",
+		"filter":   page,
+	}
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	keyToValue := map[string]string{}
+	for i := 0; ; i++ {
+		page["offset"] = offset * i
+		data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
+		if err != nil {
+			return nil, err
+		}
+
+		result := structs.GlobalConfigResult{}
+		err = cUtils.JsonUnmarshalBytes(data, &result)
+		if err != nil {
+			return nil, cExceptions.InternalError("GetAllGlobalConfig failed, err: %v", err)
+		}
+
+		for _, c := range result.Configs {
+			keyToValue[c.Key] = c.Value
+		}
+
+		if len(result.Configs) < pageSize {
+			break
+		}
+	}
+	return keyToValue, nil
 }
 
 func (r *RequestHttp) GetFields(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string) (result *structs.ObjFields, err error) {

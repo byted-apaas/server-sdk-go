@@ -4,46 +4,35 @@
 package application
 
 import (
-	cHttp "github.com/byted-apaas/server-common-go/http"
-	"github.com/byted-apaas/server-sdk-go/common/constants"
-	"github.com/byted-apaas/server-sdk-go/common/structs"
-	"github.com/byted-apaas/server-sdk-go/service/data"
+	"github.com/byted-apaas/server-common-go/logger"
+	appImpl "github.com/byted-apaas/server-sdk-go/service/app/impl"
 	dataImpl "github.com/byted-apaas/server-sdk-go/service/data/impl"
-	"github.com/byted-apaas/server-sdk-go/service/function"
-	funcitonV2Impl "github.com/byted-apaas/server-sdk-go/service/function/impl"
+	eventImpl "github.com/byted-apaas/server-sdk-go/service/event/impl"
+	"github.com/byted-apaas/server-sdk-go/service/flow"
+	globalVarImpl "github.com/byted-apaas/server-sdk-go/service/global_var/impl"
 	"github.com/byted-apaas/server-sdk-go/service/integration"
-	"github.com/byted-apaas/server-sdk-go/service/resources_v2"
-	"github.com/byted-apaas/server-sdk-go/service/tools"
+	messageImpl "github.com/byted-apaas/server-sdk-go/service/message/impl"
+	"github.com/byted-apaas/server-sdk-go/service/metadata"
+	"github.com/byted-apaas/server-sdk-go/service/resources"
+	tenantImpl "github.com/byted-apaas/server-sdk-go/service/tenant/impl"
+	"github.com/byted-apaas/server-sdk-go/service/user"
 )
 
-type Application struct {
-	Data      data.IDataV2
-	Resources *resources_v2.Resources
-	Tools     tools.ITools
-	appCtx    *structs.AppCtx
-	Integration integration.IIntegration
-}
+var (
+	Tenant = tenantImpl.NewTenant(nil)
+	App    = appImpl.NewApp(nil)
+	User   = user.NewUser(nil)
+	Event  = eventImpl.NewEvent(nil)
 
-func NewApplication(clientID, clientSecret string) *Application {
-	appCtx := &structs.AppCtx{
-		Mode:       structs.AppModeOpenSDK,
-		Credential: cHttp.NewAppCredential(clientID, clientSecret),
-	}
-	return &Application{
-		Data:      dataImpl.NewDataV2(appCtx),
-		Resources: resources_v2.NewResources(appCtx),
-		Tools:     tools.NewTools(appCtx),
-		Integration: integration.NewIntegration(appCtx),
-		appCtx:    appCtx,
-	}
-}
-
-func (a *Application) Function(apiName string) function.IFunction {
-	return funcitonV2Impl.NewFunction(a.appCtx, apiName)
-}
-
-// Env 设置平台的环境，当访问平台的非正式环境时使用
-func (a *Application) Env(env constants.PlatformEnvType) *Application {
-	a.appCtx.Env = env
-	return a
-}
+	Data      = dataImpl.NewData(nil)
+	Metadata  = metadata.NewMetadata(nil)
+	GlobalVar = globalVarImpl.NewGlobalVar(nil)
+	Flow      = flow.NewFlow(nil)
+	Resources = resources.NewResources(nil)
+	Msg       = messageImpl.NewMsg(nil)
+	GetLogger = logger.GetLogger
+	// GetContext 获得一些上游传入的系统上下文参数
+	GetContext    = user.GetContext
+	GetContextMap = user.GetContextMap
+	Integration   = integration.NewIntegration(nil)
+)

@@ -11,6 +11,7 @@ import (
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
+	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/request"
 	"github.com/byted-apaas/server-sdk-go/service/data"
 )
@@ -79,7 +80,7 @@ func (o *Object) Update(ctx context.Context, _id int64, record interface{}) erro
 	return request.GetInstance(ctx).UpdateRecord(ctx, o.appCtx, o.objectAPIName, _id, record)
 }
 
-func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{}) error {
+func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{}, result ...interface{}) error {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
@@ -88,7 +89,15 @@ func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{})
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchUpdateRecordV2(ctx, o.appCtx, o.objectAPIName, records)
 	}
-	return request.GetInstance(ctx).BatchUpdateRecord(ctx, o.appCtx, o.objectAPIName, records)
+	resp, err := request.GetInstance(ctx).BatchUpdateRecord(ctx, o.appCtx, o.objectAPIName, records)
+	if err != nil {
+		return err
+	}
+
+	if len(result) > 0 {
+		return utils.ParseBatchResult(resp, result[0])
+	}
+	return nil
 }
 
 func (o *Object) BatchUpdateAsync(ctx context.Context, records map[int64]interface{}) (int64, error) {
@@ -112,7 +121,7 @@ func (o *Object) Delete(ctx context.Context, _id int64) error {
 	return request.GetInstance(ctx).DeleteRecord(ctx, o.appCtx, o.objectAPIName, _id)
 }
 
-func (o *Object) BatchDelete(ctx context.Context, _ids []int64) error {
+func (o *Object) BatchDelete(ctx context.Context, _ids []int64, result ...interface{}) error {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
 	if err := o.check(); err != nil {
 		return err
@@ -121,7 +130,15 @@ func (o *Object) BatchDelete(ctx context.Context, _ids []int64) error {
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchDeleteRecordV2(ctx, o.appCtx, o.objectAPIName, _ids)
 	}
-	return request.GetInstance(ctx).BatchDeleteRecord(ctx, o.appCtx, o.objectAPIName, _ids)
+	resp, err := request.GetInstance(ctx).BatchDeleteRecord(ctx, o.appCtx, o.objectAPIName, _ids)
+	if err != nil {
+		return err
+	}
+
+	if len(result) > 0 {
+		return utils.ParseBatchResult(resp, result[0])
+	}
+	return nil
 }
 
 func (o *Object) BatchDeleteAsync(ctx context.Context, _ids []int64) (int64, error) {
@@ -140,13 +157,14 @@ func (o *Object) Count(ctx context.Context) (int64, error) {
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Count(ctx)
 }
 
-func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error) error {
+func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
 	if err := o.check(); err != nil {
 		return err
 	}
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindStream(ctx, recordType, handler)
 }
 
+// FindAll Deprecated
 func (o *Object) FindAll(ctx context.Context, records interface{}) error {
 	if err := o.check(); err != nil {
 		return err
@@ -154,18 +172,18 @@ func (o *Object) FindAll(ctx context.Context, records interface{}) error {
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindAll(ctx, records)
 }
 
-func (o *Object) Find(ctx context.Context, records interface{}) error {
+func (o *Object) Find(ctx context.Context, records interface{}, unauthFields ...interface{}) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Find(ctx, records)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Find(ctx, records, unauthFields...)
 }
 
-func (o *Object) FindOne(ctx context.Context, record interface{}) error {
+func (o *Object) FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindOne(ctx, record)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindOne(ctx, record, unauthFields...)
 }
 
 func (o *Object) Where(condition interface{}) data.IQuery {

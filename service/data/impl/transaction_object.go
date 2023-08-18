@@ -11,6 +11,7 @@ import (
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/service/data"
+	"github.com/byted-apaas/server-sdk-go/service/std_record"
 	"github.com/google/uuid"
 )
 
@@ -32,9 +33,10 @@ func (t *TransactionObject) RegisterCreate(record interface{}) (*structs.Transac
 		t.transaction.err = cExceptions.InvalidParamError("[RegisterCreate] The record cannot be empty")
 		return nil, t.transaction.err
 	}
+	newRecord := std_record.ConvertStdRecord(record)
 
 	input := map[string]interface{}{}
-	err := cUtils.Decode(record, &input)
+	err := cUtils.Decode(newRecord, &input)
 	if err != nil {
 		t.transaction.err = cExceptions.InvalidParamError("[RegisterCreate] Decode record failed, err: %+v", err)
 		return nil, t.transaction.err
@@ -66,9 +68,10 @@ func (t *TransactionObject) RegisterUpdate(_id interface{}, record interface{}) 
 	if err := t.check(); err != nil {
 		return
 	}
+	newRecord := std_record.ConvertStdRecord(record)
 
 	input := map[string]interface{}{}
-	err := cUtils.Decode(record, &input)
+	err := cUtils.Decode(newRecord, &input)
 	if err != nil {
 		t.transaction.err = cExceptions.InvalidParamError("[RegisterUpdate] Decode record failed, err: %+v", err)
 		return
@@ -101,9 +104,10 @@ func (t *TransactionObject) RegisterBatchCreate(records interface{}) ([]interfac
 	if err := t.check(); err != nil {
 		return nil, err
 	}
+	newRs := std_record.ConvertStdRecords(records)
 
 	var newRecords []map[string]interface{}
-	if err := cUtils.Decode(records, &newRecords); err != nil {
+	if err := cUtils.Decode(newRs, &newRecords); err != nil {
 		t.transaction.err = cExceptions.InvalidParamError("[RegisterBatchCreate] The type of records is not []map[string]interface{}")
 		return nil, t.transaction.err
 	}
@@ -140,9 +144,10 @@ func (t *TransactionObject) RegisterBatchUpdate(records interface{}) {
 	if err := t.check(); err != nil {
 		return
 	}
+	newRs := std_record.ConvertStdRecords(records)
 
 	var newRecords []map[string]interface{}
-	if err := cUtils.Decode(records, &newRecords); err != nil {
+	if err := cUtils.Decode(newRs, &newRecords); err != nil {
 		t.transaction.err = cExceptions.InvalidParamError("[RegisterBatchUpdate] The type of records is not []map[string]interface{}")
 		return
 	}

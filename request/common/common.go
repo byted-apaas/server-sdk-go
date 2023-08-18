@@ -8,6 +8,7 @@ import (
 
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/common/structs"
 )
 
 func BuildInvokeParamsStr(ctx context.Context, apiName string, params interface{}) (map[string]interface{}, error) {
@@ -40,7 +41,6 @@ func BuildInvokeParamAndContext(ctx context.Context, params interface{}) (string
 	if err != nil {
 		return "", "", cExceptions.InvalidParamError("Marshal params failed, err: %+v", err)
 	}
-
 	return string(sysParams), string(bizParams), nil
 }
 
@@ -50,4 +50,33 @@ func BuildInvokeSysParams(ctx context.Context) map[string]interface{} {
 		"x-kunlun-distributed-mask": cUtils.GetDistributedMaskFromCtx(ctx),
 		"x-kunlun-loop-masks":       cUtils.GetLoopMaskFromCtx(ctx),
 	}
+}
+
+func GenBatchResultByRecords(records map[int64]interface{}, errMap map[int64]string) *structs.BatchResult {
+	result := &structs.BatchResult{Code: "", Msg: "success"}
+	for id := range records {
+		result.Data = append(result.Data, GenBatchResultData(id, errMap))
+	}
+	return result
+}
+
+func GenBatchResultByRecordIDs(recordIDs []int64, errMap map[int64]string) *structs.BatchResult {
+	result := &structs.BatchResult{Code: "", Msg: "success"}
+	for _, id := range recordIDs {
+		result.Data = append(result.Data, GenBatchResultData(id, errMap))
+	}
+	return result
+}
+
+func GenBatchResultData(id int64, errMap map[int64]string) structs.BatchResultData {
+	d := structs.BatchResultData{ID: id, Success: true}
+	if errCode, ok := errMap[id]; ok {
+		d.Success = false
+		d.Errors = []structs.BatchResultDataError{
+			{
+				Code: errCode,
+			},
+		}
+	}
+	return d
 }

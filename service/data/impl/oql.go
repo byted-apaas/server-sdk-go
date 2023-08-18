@@ -10,6 +10,7 @@ import (
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
+	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/request"
 	"github.com/byted-apaas/server-sdk-go/service/data"
 )
@@ -35,17 +36,25 @@ func NewOql(s *structs.AppCtx, oql string, args ...interface{}) data.IOql {
 	return o
 }
 
-func (o *Oql) Execute(ctx context.Context, resultSet interface{}) error {
-	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, o.authType)
+func (o *Oql) Execute(ctx context.Context, resultSet interface{}, unauthFields ...interface{}) error {
+	ctx = cUtils.SetUserAndMixAuthTypeToCtx(ctx, o.authType, true)
 	if err := o.check(); err != nil {
 		return err
 	}
 
-	return request.GetInstance(ctx).Oql(ctx, o.appCtx, o.oql, nil, o.namedArgs, resultSet)
+	unauthFieldsResult, err := request.GetInstance(ctx).Oql(ctx, o.appCtx, o.oql, nil, o.namedArgs, resultSet)
+	if err != nil {
+		return err
+	}
+
+	if len(unauthFields) > 0 {
+		return utils.ParseUnauthFields(unauthFieldsResult, unauthFields[0])
+	}
+	return nil
 }
 
 func (o *Oql) UseUserAuth() data.IOql {
-	o.authType = cUtils.StringPtr(cConstants.AuthTypeUser)
+	o.authType = cUtils.StringPtr(cConstants.AuthTypeMixUserSystem)
 	return o
 }
 

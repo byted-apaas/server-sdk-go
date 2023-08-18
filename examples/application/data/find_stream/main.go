@@ -12,9 +12,9 @@ import (
 )
 
 type TestObject struct {
-	ID     int64   `json:"_id,omitempty"`
-	Text   string  `json:"testText"`
-	Number int64   `json:"testNumber"`
+	ID     int64  `json:"_id,omitempty"`
+	Text   string `json:"testText"`
+	Number int64  `json:"testNumber"`
 }
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 	}
 	fmt.Printf("count: %d\n", count)
 
-	err = app.Data.Object("testObject").OrderBy("testNumber").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf( &TestObject{}), func(ctx context.Context, records interface{}) error {
+	err = app.Data.Object("testObject").OrderBy("testNumber").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}, unAuthedFields interface{}) error {
 		var rs []*TestObject
 		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
 			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
@@ -58,7 +58,7 @@ func main() {
 		panic(err)
 	}
 
-	err = app.Data.Object("testObject").OrderBy("testNumber").Offset(3).Limit(302).Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf( &TestObject{}), func(ctx context.Context, records interface{}) error {
+	err = app.Data.Object("testObject").OrderBy("testNumber").Offset(3).Limit(302).Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}, unAuthedFields interface{}) error {
 		var rs []*TestObject
 		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
 			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)

@@ -11,6 +11,7 @@ import (
 	dataImpl "github.com/byted-apaas/server-sdk-go/service/data/impl"
 	"github.com/byted-apaas/server-sdk-go/service/function"
 	funcitonV2Impl "github.com/byted-apaas/server-sdk-go/service/function/impl"
+	"github.com/byted-apaas/server-sdk-go/service/integration"
 	"github.com/byted-apaas/server-sdk-go/service/resources_v2"
 	"github.com/byted-apaas/server-sdk-go/service/tools"
 )
@@ -19,6 +20,7 @@ type Application struct {
 	Data        data.IDataV2
 	Resources   *resources_v2.Resources
 	Tools       tools.ITools
+	Integration integration.IIntegration
 	appCtx      *structs.AppCtx
 }
 
@@ -31,6 +33,7 @@ func NewApplication(clientID, clientSecret string) *Application {
 		Data:        dataImpl.NewDataV2(appCtx),
 		Resources:   resources_v2.NewResources(appCtx),
 		Tools:       tools.NewTools(appCtx),
+		Integration: integration.NewIntegration(appCtx),
 		appCtx:      appCtx,
 	}
 }

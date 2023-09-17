@@ -42,20 +42,38 @@ type IObject interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) (err error)
 	// FindStream 流式查询
+	// @param ctx 上下文
+	// @param recordType 记录数据的类型
+	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
+	// @param params 参数，包括 IDGetter 和 Handler 处理函数
 	// @example:
-	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
-	//      var rs []*TestObject
-	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
-	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
-	//			if !ok {
-	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
-	//			}
-	//			rs = append(rs, &o)
-	//		}
+	// err := app.Data.Object("testObject").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), nil,
+	//		structs.FindStreamParam{
+	//			IDGetter: func(record interface{}) (id int64, err error) {
+	//				t, ok := record.(TestObject)
+	//				if !ok {
+	//					return 0, fmt.Errorf(fmt.Sprintf("should be TestObject, but %T", record))
+	//				}
+	//				return t.ID, nil
+	//			},
+	//			Handler: func(ctx context.Context, data *structs.FindStreamData) error {
+	//				var rs []*TestObject
+	//				for i := 0; i < reflect.ValueOf(data.Records).Elem().Len(); i++ {
+	//					o, ok := reflect.ValueOf(data.Records).Elem().Index(i).Interface().(TestObject)
+	//					if !ok {
+	//						panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(data.Records).Elem().Index(i).Interface()))
+	//					}
+	//					rs = append(rs, &o)
+	//				}
 	//
-	//		// doSomething
-	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) (err error)
+	//              // doSomething
+	//				return nil
+	//			},
+	//		})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -104,20 +122,38 @@ type IObjectV2 interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
+	// @param ctx 上下文
+	// @param recordType 记录数据的类型
+	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
+	// @param params 参数，包括 IDGetter 和 Handler 处理函数
 	// @example:
-	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
-	//      var rs []*TestObject
-	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
-	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
-	//			if !ok {
-	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
-	//			}
-	//			rs = append(rs, &o)
-	//		}
+	// err := app.Data.Object("testObject").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), nil,
+	//		structs.FindStreamParam{
+	//			IDGetter: func(record interface{}) (id int64, err error) {
+	//				t, ok := record.(TestObject)
+	//				if !ok {
+	//					return 0, fmt.Errorf(fmt.Sprintf("should be TestObject, but %T", record))
+	//				}
+	//				return t.ID, nil
+	//			},
+	//			Handler: func(ctx context.Context, data *structs.FindStreamData) error {
+	//				var rs []*TestObject
+	//				for i := 0; i < reflect.ValueOf(data.Records).Elem().Len(); i++ {
+	//					o, ok := reflect.ValueOf(data.Records).Elem().Index(i).Interface().(TestObject)
+	//					if !ok {
+	//						panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(data.Records).Elem().Index(i).Interface()))
+	//					}
+	//					rs = append(rs, &o)
+	//				}
 	//
-	//		// doSomething
-	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error
+	//              // doSomething
+	//				return nil
+	//			},
+	//		})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -168,20 +204,38 @@ type IQuery interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
+	// @param ctx 上下文
+	// @param recordType 记录数据的类型
+	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
+	// @param params 参数，包括 IDGetter 和 Handler 处理函数
 	// @example:
-	//   FindStream(ctx, reflect.TypeOf(&TestObject{}), func(ctx context.Context, records interface{}) error {
-	//      var rs []*TestObject
-	//		for i := 0; i < reflect.ValueOf(records).Elem().Len(); i++ {
-	//			o, ok := reflect.ValueOf(records).Elem().Index(i).Interface().(TestObject)
-	//			if !ok {
-	//				panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(records).Elem().Index(i).Interface()))
-	//			}
-	//			rs = append(rs, &o)
-	//		}
+	// err := app.Data.Object("testObject").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), nil,
+	//		structs.FindStreamParam{
+	//			IDGetter: func(record interface{}) (id int64, err error) {
+	//				t, ok := record.(TestObject)
+	//				if !ok {
+	//					return 0, fmt.Errorf(fmt.Sprintf("should be TestObject, but %T", record))
+	//				}
+	//				return t.ID, nil
+	//			},
+	//			Handler: func(ctx context.Context, data *structs.FindStreamData) error {
+	//				var rs []*TestObject
+	//				for i := 0; i < reflect.ValueOf(data.Records).Elem().Len(); i++ {
+	//					o, ok := reflect.ValueOf(data.Records).Elem().Index(i).Interface().(TestObject)
+	//					if !ok {
+	//						panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(data.Records).Elem().Index(i).Interface()))
+	//					}
+	//					rs = append(rs, &o)
+	//				}
 	//
-	//		// doSomething
-	//  })
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error
+	//              // doSomething
+	//				return nil
+	//			},
+	//		})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错

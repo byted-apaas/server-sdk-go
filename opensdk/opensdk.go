@@ -11,15 +11,17 @@ import (
 	dataImpl "github.com/byted-apaas/server-sdk-go/service/data/impl"
 	"github.com/byted-apaas/server-sdk-go/service/function"
 	funcitonV2Impl "github.com/byted-apaas/server-sdk-go/service/function/impl"
+	"github.com/byted-apaas/server-sdk-go/service/integration"
 	"github.com/byted-apaas/server-sdk-go/service/resources_v2"
 	"github.com/byted-apaas/server-sdk-go/service/tools"
 )
 
 type Application struct {
-	Data      data.IDataV2
-	Resources *resources_v2.Resources
-	Tools     tools.ITools
-	appCtx    *structs.AppCtx
+	Data        data.IDataV2
+	Resources   *resources_v2.Resources
+	Tools       tools.ITools
+	appCtx      *structs.AppCtx
+	Integration integration.IIntegration
 }
 
 func NewApplication(clientID, clientSecret string) *Application {
@@ -28,10 +30,11 @@ func NewApplication(clientID, clientSecret string) *Application {
 		Credential: cHttp.NewAppCredential(clientID, clientSecret),
 	}
 	return &Application{
-		Data:      dataImpl.NewDataV2(appCtx),
-		Resources: resources_v2.NewResources(appCtx),
-		Tools:     tools.NewTools(appCtx),
-		appCtx:    appCtx,
+		Data:        dataImpl.NewDataV2(appCtx),
+		Resources:   resources_v2.NewResources(appCtx),
+		Integration: integration.NewIntegration(appCtx),
+		Tools:       tools.NewTools(appCtx),
+		appCtx:      appCtx,
 	}
 }
 

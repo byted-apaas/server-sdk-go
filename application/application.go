@@ -10,6 +10,7 @@ import (
 	eventImpl "github.com/byted-apaas/server-sdk-go/service/event/impl"
 	"github.com/byted-apaas/server-sdk-go/service/flow"
 	globalVarImpl "github.com/byted-apaas/server-sdk-go/service/global_var/impl"
+	"github.com/byted-apaas/server-sdk-go/service/integration"
 	messageImpl "github.com/byted-apaas/server-sdk-go/service/message/impl"
 	"github.com/byted-apaas/server-sdk-go/service/metadata"
 	"github.com/byted-apaas/server-sdk-go/service/resources"
@@ -33,4 +34,5 @@ var (
 	// GetContext 获得一些上游传入的系统上下文参数
 	GetContext    = user.GetContext
 	GetContextMap = user.GetContextMap
+	Integration   = integration.NewIntegration(nil)
 )

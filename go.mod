@@ -3,7 +3,7 @@ module github.com/byted-apaas/server-sdk-go
 go 1.16
 
 require (
-	github.com/byted-apaas/server-common-go v0.0.19
+	github.com/byted-apaas/server-common-go v0.0.20
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/mitchellh/mapstructure v1.5.0

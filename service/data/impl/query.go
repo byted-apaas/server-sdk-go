@@ -77,16 +77,24 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 	}
 }
 
-func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
+func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	if q.err != nil {
 		return q.err
 	}
 
 	if q.appCtx.IsOpenSDK() {
-		return q.findStreamByLimitOffsetV2(ctx, recordType, handler)
+		if len(q.order) > 0 || q.offset > 0 || len(params) == 0 || params[0].IDGetter == nil {
+			return q.findStreamByLimitOffsetV2(ctx, recordType, handler, params...)
+		}
+		return q.findStreamByIDV2(ctx, recordType, handler, params[0].IDGetter, params...)
 	}
-	return q.findStreamByLimitOffset(ctx, recordType, handler)
+
+	// 如果设置了 order 或 设置了 offset 或 未设置 IDGetter 走 offset、limit 分页
+	if len(q.order) > 0 || q.offset > 0 || len(params) == 0 || params[0].IDGetter == nil {
+		return q.findStreamByLimitOffset(ctx, recordType, handler, params...)
+	}
+	return q.findStreamByID(ctx, recordType, handler, params[0].IDGetter, params...)
 }
 
 func (q *Query) FindAll(ctx context.Context, records interface{}) error {
@@ -734,7 +742,7 @@ func CheckAndGetSlice(recordType reflect.Type) (reflect.Value, error) {
 	return reflect.MakeSlice(reflect.SliceOf(recordType), 0, 0), nil
 }
 
-func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
+func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -772,15 +780,29 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 		}
 
 		var perRecords = reflect.New(reflectResults.Type())
-		unauthFieldResult, err := request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		var unauthFieldResult [][]string
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
 		if err != nil {
 			return err
 		}
 
 		if perRecords.Elem().Len() > 0 {
-			err = handler(ctx, perRecords.Interface(), unauthFieldResult)
-			if err != nil {
-				return err
+			if handler != nil {
+				err = handler(ctx, perRecords.Interface())
+				if err != nil {
+					return err
+				}
+			}
+
+			for _, p := range params {
+				if p.Handler != nil {
+					if err = p.Handler(ctx, &structs.FindStreamData{
+						Records:      perRecords.Interface(),
+						UnauthFields: unauthFieldResult,
+					}); err != nil {
+						return err
+					}
+				}
 			}
 		}
 
@@ -792,7 +814,101 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 	return nil
 }
 
-func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
+func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
+	idGetter func(interface{}) (int64, error), params ...structs.FindStreamParam) error {
+	reflectResults, err := CheckAndGetSlice(recordType)
+	if err != nil {
+		return err
+	}
+
+	criterion, err := q.buildCriterion(ctx, q.filter)
+	if err != nil {
+		return err
+	}
+
+	// 添加 _id > maxID 条件
+	var maxID = int64(0)
+	var queryCount = 0
+	if len(criterion.Logic) > 0 {
+		criterion.Logic = fmt.Sprintf("(%d and %s)", len(criterion.Conditions)+1, criterion.Logic)
+	} else {
+		criterion.Logic = fmt.Sprintf("%d", len(criterion.Conditions)+1)
+	}
+	idCondition := cond2.Gt("_id", maxID)
+	idCondition.Index = int64(len(criterion.Conditions) + 1)
+	idCondition.Left.Settings.FieldPath[0].ObjectAPIName = q.objectAPIName
+	criterion.Conditions = append(criterion.Conditions, idCondition)
+
+	param := &structs.GetRecordsReqParam{
+		Limit:          constants.PageLimitDefault,
+		Offset:         0,
+		FieldApiNames:  q.fields,
+		Order:          []*structs.Order{{Field: "_id", Direction: "asc"}},
+		Criterion:      criterion,
+		NeedTotalCount: false,
+		FuzzySearch:    q.fuzzySearch,
+	}
+
+	for {
+		idCondition.Right.Settings.Data = maxID
+		param.Limit = func() int64 {
+			if !q.isSetLimit {
+				return constants.PageLimitDefault
+			}
+			if q.limit-int64(queryCount) < constants.PageLimitDefault {
+				return q.limit - int64(queryCount)
+			}
+			return constants.PageLimitDefault
+		}()
+		if param.Limit <= 0 {
+			break
+		}
+
+		var perRecords = reflect.New(reflectResults.Type())
+		var unauthFieldResult [][]string
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if err != nil {
+			return err
+		}
+
+		queryCount += perRecords.Elem().Len()
+		if perRecords.Elem().Len() > 0 {
+			if handler != nil {
+				if err = handler(ctx, perRecords.Interface()); err != nil {
+					return err
+				}
+			}
+
+			for _, p := range params {
+				if p.Handler != nil {
+					if err = p.Handler(ctx, &structs.FindStreamData{
+						Records:      perRecords.Interface(),
+						UnauthFields: unauthFieldResult,
+					}); err != nil {
+						return err
+					}
+				}
+			}
+
+			maxID, err = idGetter(perRecords.Elem().Index(perRecords.Elem().Len() - 1).Interface())
+			if err != nil {
+				return err
+			}
+
+			if maxID <= 0 {
+				return cExceptions.InvalidParamError("The ID obtained by IDGetter should be greater than 0, but %d", maxID)
+			}
+		}
+
+		if perRecords.Elem().Len() < constants.PageLimitDefault {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -824,15 +940,111 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 		}
 
 		var perRecords = reflect.New(reflectResults.Type())
-		unauthFieldResult, err := request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		var unauthFieldResult [][]string
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
 		if err != nil {
 			return err
 		}
 
 		if perRecords.Elem().Len() > 0 {
-			err = handler(ctx, perRecords.Interface(), unauthFieldResult)
+			if handler != nil {
+				err = handler(ctx, perRecords.Interface())
+				if err != nil {
+					return err
+				}
+			}
+
+			for _, p := range params {
+				if p.Handler != nil {
+					if err = p.Handler(ctx, &structs.FindStreamData{
+						Records:      perRecords.Interface(),
+						UnauthFields: unauthFieldResult,
+					}); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		if perRecords.Elem().Len() < constants.PageLimitDefault {
+			break
+		}
+	}
+
+	return nil
+}
+
+func (q *Query) findStreamByIDV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
+	idGetter func(interface{}) (int64, error), params ...structs.FindStreamParam) error {
+	reflectResults, err := CheckAndGetSlice(recordType)
+	if err != nil {
+		return err
+	}
+
+	var maxID = int64(0)
+	var queryCount = 0
+
+	idCondition := cond2.NewExpressionV2("_id", op.Gt, maxID)
+	conditions := q.buildCriterionV2(q.filter)
+	conditions = append(conditions, idCondition)
+
+	param := &structs.GetRecordsReqParamV2{
+		Limit:  constants.PageLimitDefault,
+		Offset: 0,
+		Fields: q.fields,
+		Sort:   []*structs.Order{{Field: "_id", Direction: "asc"}},
+		Count:  cUtils.BoolPtr(false),
+		Filter: conditions,
+	}
+
+	for {
+		idCondition.RightValue = maxID
+		param.Limit = func() int64 {
+			if !q.isSetLimit {
+				return constants.PageLimitDefault
+			}
+			if q.limit-int64(queryCount) < constants.PageLimitDefault {
+				return q.limit - int64(queryCount)
+			}
+			return constants.PageLimitDefault
+		}()
+		if param.Limit <= 0 {
+			break
+		}
+
+		var perRecords = reflect.New(reflectResults.Type())
+		var unauthFieldResult [][]string
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV2(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if err != nil {
+			return err
+		}
+
+		queryCount += perRecords.Elem().Len()
+		if perRecords.Elem().Len() > 0 {
+			if handler != nil {
+				if err = handler(ctx, perRecords.Interface()); err != nil {
+					return err
+				}
+			}
+
+			for _, p := range params {
+				if p.Handler != nil {
+					if err = p.Handler(ctx, &structs.FindStreamData{
+						Records:      perRecords.Interface(),
+						UnauthFields: unauthFieldResult,
+					}); err != nil {
+						return err
+					}
+				}
+			}
+
+			maxID, err = idGetter(perRecords.Elem().Index(perRecords.Elem().Len() - 1).Interface())
 			if err != nil {
 				return err
+			}
+
+			if maxID <= 0 {
+				return cExceptions.InvalidParamError("The ID obtained by IDGetter should be greater than 0, but %d", maxID)
 			}
 		}
 

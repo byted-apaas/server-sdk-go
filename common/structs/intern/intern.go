@@ -33,3 +33,15 @@ type ExecutionInfo struct {
 	ErrCode   *string              `json:"errCode"`
 	ErrMsg    *string              `json:"errMsg"`
 }
+
+type TenantAccessToken struct {
+	Expire            int64  `json:"expire"`
+	TenantAccessToken string `json:"tenantAccessToken"`
+	AppID             string `json:"appId"`
+}
+
+type AppAccessToken struct {
+	Expire         int64  `json:"expire"`
+	AppAccessToken string `json:"appAccessToken"`
+	AppID          string `json:"appId"`
+}

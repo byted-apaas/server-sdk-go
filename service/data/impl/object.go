@@ -157,11 +157,11 @@ func (o *Object) Count(ctx context.Context) (int64, error) {
 	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).Count(ctx)
 }
 
-func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}, unauthFields interface{}) error) error {
+func (o *Object) FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
 	if err := o.check(); err != nil {
 		return err
 	}
-	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindStream(ctx, recordType, handler)
+	return newQuery(o.appCtx, o.objectAPIName, o.authType, o.err).FindStream(ctx, recordType, handler, params...)
 }
 
 // FindAll Deprecated

@@ -45,7 +45,7 @@ func (r *RequestHttp) Execute(ctx context.Context, appCtx *structs.AppCtx, APINa
 		"loopMasks": cUtils.GetLoopMaskFromCtx(ctx),
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathExecuteFlow(namespace, APIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathExecuteFlow(namespace, APIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (r *RequestHttp) RevokeExecution(ctx context.Context, appCtx *structs.AppCt
 		"reason":   options.Reason,
 	}
 
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathRevokeExecution(namespace, executionID), nil, body, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathRevokeExecution(namespace, executionID), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (r *RequestHttp) GetExecutionInfo(ctx context.Context, appCtx *structs.AppC
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathGetExecutionInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetPathGetExecutionInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (r *RequestHttp) GetExecutionUserTaskInfo(ctx context.Context, appCtx *stru
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetExecutionUserTaskInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetExecutionUserTaskInfo(namespace, executionID)+fmt.Sprintf("?operator=%v", cUtils.GetUserIDFromCtx(ctx)), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (r *RequestHttp) getRecordsRequest(ctx context.Context, appCtx *structs.App
 		return "", nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecords(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecords(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return "", nil, err
 	}
@@ -244,7 +244,7 @@ func (r *RequestHttp) getRecordsV2Request(ctx context.Context, appCtx *structs.A
 		return "", nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecordsV2(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecordsV2(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return "", nil, err
 	}
@@ -325,7 +325,7 @@ func (r *RequestHttp) GetRecordCount(ctx context.Context, appCtx *structs.AppCtx
 	if err != nil {
 		return 0, err
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecords(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecords(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -346,7 +346,7 @@ func (r *RequestHttp) GetRecordCountV2(ctx context.Context, appCtx *structs.AppC
 	if err != nil {
 		return 0, err
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecordsV2(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetRecordsV2(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -370,7 +370,7 @@ func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +391,7 @@ func (r *RequestHttp) CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateRecordV2(namespace, objectAPIName), nil, newRecord, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateRecordV2(namespace, objectAPIName), nil, newRecord, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +419,7 @@ func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.App
 		"set_system_mod":     constants.SetSystemMod_Other,
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -446,7 +446,7 @@ func (r *RequestHttp) BatchCreateRecordV2(ctx context.Context, appCtx *structs.A
 		"records": newRecords,
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *struct
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -506,7 +506,7 @@ func (r *RequestHttp) UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -519,7 +519,7 @@ func (r *RequestHttp) UpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 		return err
 	}
 
-	_, err = errorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV2(namespace, objectAPIName, recordID), nil, newRecord, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV2(namespace, objectAPIName, recordID), nil, newRecord, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -538,7 +538,7 @@ func (r *RequestHttp) BatchUpdateRecord(ctx context.Context, appCtx *structs.App
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -581,7 +581,7 @@ func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.A
 	body := map[string]interface{}{
 		"records": newRecordList,
 	}
-	_, err = errorWrapper(getOpenapiClient().PatchJson(ctx, GetPathBatchUpdateRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PatchJson(ctx, GetPathBatchUpdateRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -599,7 +599,7 @@ func (r *RequestHttp) BatchUpdateRecordAsync(ctx context.Context, appCtx *struct
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -626,7 +626,7 @@ func (r *RequestHttp) DeleteRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -638,7 +638,7 @@ func (r *RequestHttp) DeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx
 		return err
 	}
 
-	_, err = errorWrapper(getOpenapiClient().DeleteJson(ctx, GetPathDeleteRecordV2(namespace, objectAPIName, recordID), nil, map[string]interface{}{}, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().DeleteJson(ctx, GetPathDeleteRecordV2(namespace, objectAPIName, recordID), nil, map[string]interface{}{}, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -656,7 +656,7 @@ func (r *RequestHttp) BatchDeleteRecord(ctx context.Context, appCtx *structs.App
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"set_system_mod":     constants.SetSystemMod_Other,
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -683,7 +683,7 @@ func (r *RequestHttp) BatchDeleteRecordV2(ctx context.Context, appCtx *structs.A
 	body := map[string]interface{}{
 		"_ids": recordIDs,
 	}
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 
@@ -700,7 +700,7 @@ func (r *RequestHttp) BatchDeleteRecordAsync(ctx context.Context, appCtx *struct
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
 	}
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordAsync(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -729,7 +729,7 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"setSystemField": constants.CommitSetSystemMod_SysFieldSet,
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -761,7 +761,7 @@ func (r *RequestHttp) oqlRequest(ctx context.Context, appCtx *structs.AppCtx, oq
 		"unauthFields": true,
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathOql(namespace), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathOql(namespace), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return "", nil, err
 	}
@@ -826,7 +826,7 @@ func (r *RequestHttp) Oql(ctx context.Context, appCtx *structs.AppCtx, oql strin
 func (r *RequestHttp) DownloadFile(ctx context.Context, appCtx *structs.AppCtx, fileID string) ([]byte, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.DownloadAttachmentV2)
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathDownloadFileV2(fileID), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetPathDownloadFileV2(fileID), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -837,7 +837,7 @@ func (r *RequestHttp) DownloadFile(ctx context.Context, appCtx *structs.AppCtx, 
 func (r *RequestHttp) DownloadAvatar(ctx context.Context, appCtx *structs.AppCtx, imageID string) ([]byte, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.DownloadAvatar)
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathDownloadAvatar(imageID), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetPathDownloadAvatar(imageID), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -884,7 +884,7 @@ func (r *RequestHttp) UploadFile(ctx context.Context, appCtx *structs.AppCtx, fi
 		cConstants.HttpHeaderKeyContentType: {writer.FormDataContentType()},
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadFile, headers, payload, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadFile, headers, payload, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -923,7 +923,7 @@ func (r *RequestHttp) UploadFileV2(ctx context.Context, appCtx *structs.AppCtx, 
 		cConstants.HttpHeaderKeyContentType: {writer.FormDataContentType()},
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadFileV2, headers, payload, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadFileV2, headers, payload, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -962,7 +962,7 @@ func (r *RequestHttp) UploadAvatar(ctx context.Context, appCtx *structs.AppCtx, 
 		cConstants.HttpHeaderKeyContentType: {writer.FormDataContentType()},
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadAvatar, headers, payload, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostFormData(ctx, PathUploadAvatar, headers, payload, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -984,7 +984,7 @@ func (r *RequestHttp) CreateMessage(ctx context.Context, appCtx *structs.AppCtx,
 		return 0, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateMessage(namespace), nil, param, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathCreateMessage(namespace), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -1007,7 +1007,7 @@ func (r *RequestHttp) UpdateMessage(ctx context.Context, appCtx *structs.AppCtx,
 		return err
 	}
 
-	_, err = errorWrapper(getOpenapiClient().PostJson(ctx, GetPathUpdateMessage(namespace), nil, param, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathUpdateMessage(namespace), nil, param, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return err
 	}
@@ -1037,7 +1037,7 @@ func (r *RequestHttp) GetGlobalConfig(ctx context.Context, appCtx *structs.AppCt
 
 	for i := 0; ; i++ {
 		page["offset"] = offset * i
-		data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
+		data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
 		if err != nil {
 			return "", err
 		}
@@ -1085,7 +1085,7 @@ func (r *RequestHttp) GetAllGlobalConfig(ctx context.Context, appCtx *structs.Ap
 	keyToValue := map[string]string{}
 	for i := 0; ; i++ {
 		page["offset"] = offset * i
-		data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
+		data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
 		if err != nil {
 			return nil, err
 		}
@@ -1115,7 +1115,7 @@ func (r *RequestHttp) GetFields(ctx context.Context, appCtx *structs.AppCtx, obj
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathGetFields(namespace, objectAPIName), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetPathGetFields(namespace, objectAPIName), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -1135,7 +1135,7 @@ func (r *RequestHttp) GetField(ctx context.Context, appCtx *structs.AppCtx, obje
 		return nil, err
 	}
 
-	data, err := errorWrapper(getOpenapiClient().Get(ctx, GetPathGetField(namespace, objectAPIName, fieldAPIName), nil, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetPathGetField(namespace, objectAPIName, fieldAPIName), nil, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -1150,7 +1150,7 @@ func (r *RequestHttp) GetField(ctx context.Context, appCtx *structs.AppCtx, obje
 func (r *RequestHttp) MGetUserSettings(ctx context.Context, appCtx *structs.AppCtx, userIDList []int64) (result []*structs.Locale, err error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.MGetUserSettings)
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(ctx, GetPathMGetUserSettings(), nil, map[string]interface{}{
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathMGetUserSettings(), nil, map[string]interface{}{
 		"userIDs": userIDList,
 	}, cHttp.AppTokenMiddleware))
 	if err != nil {
@@ -1179,7 +1179,7 @@ func (r *RequestHttp) InvokeFunctionWithAuth(ctx context.Context, appCtx *struct
 	}
 
 	respBody, extra, err := getOpenapiClient().PostJson(ctx, GetPathInvokeFunctionWithAuth(namespace, apiName), headers, body, cHttp.AppTokenMiddleware)
-	data, err := errorWrapper(respBody, extra, err)
+	data, err := cUtils.ErrorWrapper(respBody, extra, err)
 	if err != nil {
 		return err
 	}
@@ -1228,7 +1228,7 @@ func (r *RequestHttp) InvokeFunctionAsync(ctx context.Context, appCtx *structs.A
 		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
-	data, err := errorWrapper(getOpenapiClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}

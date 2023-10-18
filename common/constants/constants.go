@@ -52,11 +52,6 @@ const (
 )
 
 const (
-	OpRateLimitError = "k_op_ec_20003"
-	FsRateLimitError = "k_fs_ec_000004"
-)
-
-const (
 	GlobalVariableCacheTableKey = "global-variable-cache-table"
 )
 

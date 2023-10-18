@@ -56,7 +56,7 @@ func (r *requestFaaSInfra) InvokeFunction(ctx context.Context, appCtx *structs.A
 		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
-	data, err := errorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunction(namespace), headers, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunction(namespace), headers, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (r *requestFaaSInfra) InvokeFunctionAsync(ctx context.Context, appCtx *stru
 		cConstants.HttpHeaderKeyUser:   {strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10)},
 	}
 
-	data, err := errorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionAsync(namespace), headers, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}
@@ -138,7 +138,7 @@ func (r *requestFaaSInfra) InvokeFunctionDistributed(ctx context.Context, appCtx
 		"x-kunlun-loop-masks":   lookMask,
 	}
 
-	data, err := errorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionDistributed(namespace), headers, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getFaaSInfraClient().PostJson(utils.SetAppConfToCtx(ctx, appCtx), GetPathInvokeFunctionDistributed(namespace), headers, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return 0, err
 	}

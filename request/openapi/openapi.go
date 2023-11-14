@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/tidwall/gjson"
+
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cHttp "github.com/byted-apaas/server-common-go/http"
@@ -26,7 +28,6 @@ import (
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	reqCommon "github.com/byted-apaas/server-sdk-go/request/common"
 	"github.com/byted-apaas/server-sdk-go/service/std_record"
-	"github.com/tidwall/gjson"
 )
 
 type RequestHttp struct{}
@@ -147,7 +148,7 @@ func (r *RequestHttp) getRecordsRequest(ctx context.Context, appCtx *structs.App
 	}
 	param.NeedFilterUserPermission = false
 	param.IgnoreBackLookupField = false
-	authFieldType := constants.ProcessAuthFieldType_SliceResult
+	authFieldType := structs.ProcessAuthFieldType_SliceResult
 	param.ProcessAuthFieldType = &authFieldType
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -251,7 +252,7 @@ func (r *RequestHttp) getRecordsV2Request(ctx context.Context, appCtx *structs.A
 
 	recordsRaw := gjson.GetBytes(data, "records").Raw
 
-	unauthPermissionInfo := structs.UnauthPermissionInfo{}
+	unauthPermissionInfo := intern.UnauthPermissionInfo{}
 	unauthPermissionInfoStr := gjson.GetBytes(data, "unauthPermissionInfo").Raw
 	if len(unauthPermissionInfoStr) > 0 {
 		err = cUtils.JsonUnmarshalBytes([]byte(unauthPermissionInfoStr), &unauthPermissionInfo)
@@ -362,7 +363,7 @@ func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		"data":               []interface{}{newRecord},
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -416,7 +417,7 @@ func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.App
 		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -504,7 +505,7 @@ func (r *RequestHttp) UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		},
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
@@ -536,7 +537,7 @@ func (r *RequestHttp) BatchUpdateRecord(ctx context.Context, appCtx *structs.App
 		"data":               newRecords,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
@@ -624,7 +625,7 @@ func (r *RequestHttp) DeleteRecord(ctx context.Context, appCtx *structs.AppCtx, 
 		"record_id_list":     []int64{recordID},
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
@@ -654,7 +655,7 @@ func (r *RequestHttp) BatchDeleteRecord(ctx context.Context, appCtx *structs.App
 		"record_id_list":     recordIDs,
 		"operator":           cUtils.GetUserIDFromCtx(ctx),
 		"automation_task_id": cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"set_system_mod":     constants.SetSystemMod_Other,
+		"set_system_mod":     intern.SetSystemMod_Other,
 	}
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecord(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
@@ -726,7 +727,7 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"operations":     operations,
 		"operatorId":     cUtils.GetUserIDFromCtx(ctx),
 		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
-		"setSystemField": constants.CommitSetSystemMod_SysFieldSet,
+		"setSystemField": intern.CommitSetSystemMod_SysFieldSet,
 	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))

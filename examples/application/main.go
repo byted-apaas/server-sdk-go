@@ -6,11 +6,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
+	"github.com/byted-apaas/server-sdk-go/opensdk"
 )
 
 func main() {
-	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
+	app := opensdk.NewApplication("***", "***").Env(constants.PlatformEnvDEV)
 	fmt.Println(app)
 }

@@ -5,7 +5,7 @@ package fields
 
 type SortCondition struct {
 	FieldAPIName string `json:"fieldAPIName"`
-	Sort         string `json:"sort"` //"asc"|"desc"
+	Sort         string `json:"sort"`//"asc"|"desc"
 }
 
 type Lookup struct {

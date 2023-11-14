@@ -45,3 +45,23 @@ type AppAccessToken struct {
 	AppAccessToken string `json:"appAccessToken"`
 	AppID          string `json:"appId"`
 }
+
+type UnauthPermissionInfo struct {
+	UnauthFieldMap   map[int64][]string `json:"unauth_field_map"`
+	UnauthFieldSlice [][]string         `json:"unauth_field_slice"`
+}
+
+type SetSystemMod int64
+
+const (
+	SetSystemMod_NotSet SetSystemMod = iota
+	SetSystemMod_FullSet
+	SetSystemMod_Other
+)
+
+type CommitSetSystemMod int64
+
+const (
+	CommitSetSystemMod_NotSet      CommitSetSystemMod = 0
+	CommitSetSystemMod_SysFieldSet CommitSetSystemMod = 1
+)

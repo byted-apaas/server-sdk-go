@@ -153,7 +153,7 @@ type IObjectV2 interface {
 	//	if err != nil {
 	//		panic(err)
 	//	}
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
@@ -235,7 +235,7 @@ type IQuery interface {
 	//	if err != nil {
 	//		panic(err)
 	//	}
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错

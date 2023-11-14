@@ -4,7 +4,6 @@
 package structs
 
 import (
-	"context"
 	"time"
 )
 
@@ -150,14 +149,4 @@ type AppAccessToken struct {
 	Expire         int64  `json:"expire"`
 	AppAccessToken string `json:"appAccessToken"`
 	AppID          string `json:"appId"`
-}
-
-type FindStreamData struct {
-	Records      interface{} `json:"records"`
-	UnauthFields [][]string  `json:"unauthFields"`
-}
-
-type FindStreamParam struct {
-	IDGetter func(record interface{}) (id int64, err error)
-	Handler  func(ctx context.Context, data *FindStreamData) (err error)
 }

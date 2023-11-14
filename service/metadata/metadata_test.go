@@ -5,10 +5,8 @@ package metadata
 
 import (
 	"context"
-	"os"
 	"testing"
 
-	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/service/metadata/object/fields"
 )
@@ -19,19 +17,6 @@ var (
 )
 
 func Init() {
-	ctx = context.WithValue(ctx, cConstants.CtxKeyDebugType, cConstants.DebugTypeLocal)
-	_ = os.Setenv("ENV", "development")
-	_ = os.Setenv("KTenantName", "xxx")
-	_ = os.Setenv("KNamespace", "xxx")
-	_ = os.Setenv("KSvcID", "xxx")
-	_ = os.Setenv("KClientID", "xxx")
-	_ = os.Setenv("KClientSecret", "xxx")
-	_ = os.Setenv("KOpenApiDomain", "xxx")
-	_ = os.Setenv("KFaaSInfraDomain", "xxx")
-	//_ = os.Setenv("KFaaSInfraDomain", "xxx")
-	//_ = os.Setenv("KFaaSInfraDomain", "xxx")
-	_ = os.Setenv("CONSUL_HTTP_HOST", "xxx")
-	_ = os.Setenv("RUNTIME_IDC_NAME", "xxx")
 }
 
 func TestMain(m *testing.M) {

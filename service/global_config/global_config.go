@@ -7,11 +7,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/muesli/cache2go"
+
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/request"
-	"github.com/muesli/cache2go"
 )
 
 func GetVar(ctx context.Context, key string) (string, error) {

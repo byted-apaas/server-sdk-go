@@ -6,6 +6,7 @@ package structs
 import (
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
+	"context"
 )
 
 type RecordID struct {
@@ -27,17 +28,26 @@ type FuzzySearch struct {
 }
 
 type GetRecordsReqParam struct {
-	Criterion                interface{}                     `json:"criterion"`
-	Order                    []*Order                        `json:"order"`
-	FieldApiNames            []string                        `json:"field_api_names"`
-	Offset                   int64                           `json:"offset"`
-	Limit                    int64                           `json:"limit"`
-	NeedTotalCount           bool                            `json:"need_total_count"`
-	IgnoreBackLookupField    bool                            `json:"ignore_back_lookup_field"`
-	NeedFilterUserPermission bool                            `json:"need_filter_user_permission"`
-	FuzzySearch              *FuzzySearch                    `json:"fuzzySearch"`
-	ProcessAuthFieldType     *constants.ProcessAuthFieldType `json:"process_auth_field_type"`
+	Criterion                interface{}           `json:"criterion"`
+	Order                    []*Order              `json:"order"`
+	FieldApiNames            []string              `json:"field_api_names"`
+	Offset                   int64                 `json:"offset"`
+	Limit                    int64                 `json:"limit"`
+	NeedTotalCount           bool                  `json:"need_total_count"`
+	IgnoreBackLookupField    bool                  `json:"ignore_back_lookup_field"`
+	NeedFilterUserPermission bool                  `json:"need_filter_user_permission"`
+	FuzzySearch              *FuzzySearch          `json:"fuzzySearch"`
+	ProcessAuthFieldType     *ProcessAuthFieldType `json:"process_auth_field_type"`
 }
+
+type ProcessAuthFieldType int64
+
+const (
+	ProcessAuthFieldType_Default ProcessAuthFieldType = iota
+	ProcessAuthFieldType_BothResult
+	ProcessAuthFieldType_SliceResult
+	ProcessAuthFieldType_MapResult
+)
 
 type GetRecordsReqParamV2 struct {
 	Limit       int64         `json:"limit"`
@@ -135,7 +145,12 @@ type BatchResultDataError struct {
 	Code string `json:"code"`
 }
 
-type UnauthPermissionInfo struct {
-	UnauthFieldMap   map[int64][]string `json:"unauth_field_map"`
-	UnauthFieldSlice [][]string         `json:"unauth_field_slice"`
+type FindStreamData struct {
+	Records      interface{} `json:"records"`
+	UnauthFields [][]string  `json:"unauthFields"`
+}
+
+type FindStreamParam struct {
+	IDGetter func(record interface{}) (id int64, err error)
+	Handler  func(ctx context.Context, data *FindStreamData) (err error)
 }

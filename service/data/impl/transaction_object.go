@@ -6,13 +6,14 @@ package data
 import (
 	"reflect"
 
+	"github.com/google/uuid"
+
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/service/data"
 	"github.com/byted-apaas/server-sdk-go/service/std_record"
-	"github.com/google/uuid"
 )
 
 type TransactionObject struct {

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/muesli/cache2go"
+
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
@@ -23,7 +25,6 @@ import (
 	cond2 "github.com/byted-apaas/server-sdk-go/service/data/cond"
 	"github.com/byted-apaas/server-sdk-go/service/data/op"
 	"github.com/byted-apaas/server-sdk-go/service/std_record"
-	"github.com/muesli/cache2go"
 )
 
 type Query struct {
@@ -272,10 +273,12 @@ func newQuery(s *structs.AppCtx, objectAPIName string, authType *string, err err
 // Where 配置过滤条件
 // @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错
 // @example condition：
-//     cond.And(...)
-//     cond.Or(...)
-//     cond.Eq(...)
-//     cond.Gt(...)
+//
+//	cond.And(...)
+//	cond.Or(...)
+//	cond.Eq(...)
+//	cond.Gt(...)
+//
 // @return 返回查询对象
 func (q *Query) Where(condition interface{}) data.IQuery {
 	if q.err != nil {
@@ -439,10 +442,12 @@ func (q *Query) buildCriterion(ctx context.Context, filter *cond2.LogicalExpress
 }
 
 // bfs 广度优先遍历
-//     1.设置表达式的序号
-//     2.设置第一层的 ObjectAPIName
-//     3.记录多层下钻场景的 ObjectAPIName，后绪统一补全，减少 getFields 的次数
-//     4.判断是否有 _isDeleted 条件，如果没有，后绪需要补上
+//
+//	1.设置表达式的序号
+//	2.设置第一层的 ObjectAPIName
+//	3.记录多层下钻场景的 ObjectAPIName，后绪统一补全，减少 getFields 的次数
+//	4.判断是否有 _isDeleted 条件，如果没有，后绪需要补上
+//
 // @param filter：查询的过滤条件
 // @return1：拍平后的条件
 // @return2：多层下钻场景有 ObjectAPIName 待补全
@@ -788,8 +793,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 
 		if perRecords.Elem().Len() > 0 {
 			if handler != nil {
-				err = handler(ctx, perRecords.Interface())
-				if err != nil {
+				if err = handler(ctx, perRecords.Interface()); err != nil {
 					return err
 				}
 			}
@@ -948,8 +952,7 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 
 		if perRecords.Elem().Len() > 0 {
 			if handler != nil {
-				err = handler(ctx, perRecords.Interface())
-				if err != nil {
+				if err = handler(ctx, perRecords.Interface()); err != nil {
 					return err
 				}
 			}

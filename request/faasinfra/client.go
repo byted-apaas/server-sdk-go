@@ -34,23 +34,25 @@ func getFaaSInfraClient() *cHttp.HttpClient {
 					IdleConnTimeout:     60 * time.Second,
 				},
 			},
-			MeshClient: &http.Client{
-				Transport: &http.Transport{
-					DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-						unixAddr, err := net.ResolveUnixAddr("unix", cUtils.GetSocketAddr())
-						if err != nil {
-							return nil, err
-						}
-						return net.DialUnix("unix", nil, unixAddr)
-					},
-					TLSHandshakeTimeout: cConstants.HttpClientTLSTimeoutDefault,
-					MaxIdleConns:        1000,
-					MaxIdleConnsPerHost: 10,
-					IdleConnTimeout:     60 * time.Second,
-				},
-			},
 			FromSDK: version.GetServerSDKInfo(),
 		}
 	})
+	if cUtils.EnableMesh() {
+		fsInfraClient.MeshClient = &http.Client{
+			Transport: &http.Transport{
+				DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+					unixAddr, err := net.ResolveUnixAddr("unix", cUtils.GetSocketAddr())
+					if err != nil {
+						return nil, err
+					}
+					return net.DialUnix("unix", nil, unixAddr)
+				},
+				TLSHandshakeTimeout: cConstants.HttpClientTLSTimeoutDefault,
+				MaxIdleConns:        1000,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     60 * time.Second,
+			},
+		}
+	}
 	return fsInfraClient
 }

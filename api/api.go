@@ -1,6 +1,31 @@
 // Copyright 2022 ByteDance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
+// Package api is deprecated. Please use the new package instead.
+//
+// Deprecated: This package is no longer maintained. Please refer to the example below to use the other new packages.
+//
+// Example:
+//  1. api(github.com/byted-apaas/server-sdk-go) -> application(github.com/byted-apaas/server-sdk-go)
+//	api.Data -> application.Data
+//	api.Metadata -> application.Metadata
+//  api.Resources -> application.Resources
+//  api.Msg -> application.Msg
+//  api.GetLogger -> application.GetLogger
+//  api.GetVar -> application.GlobalVar
+//  api.Tools.GetTenantInfo -> application.Tenant.GetTenantInfo
+//  api.User -> application.User
+//  api.Flow -> application.Flow
+//  api.GetContext -> application.GetContext
+//  api.GetContextMap -> application.GetContextMap
+//
+//  2. api(github.com/byted-apaas/server-sdk-go) -> baas(github.com/byted-apaas/baas-sdk-go)
+//  api.Tasks -> baas.Tasks
+//
+//  3. api(github.com/byted-apaas/server-sdk-go) -> faas(github.com/byted-apaas/faas-sdk-go)
+//  api.Function -> faas.Function
+//  api.Tools -> faas.Tools
+//
 package api
 
 import (
@@ -30,8 +55,8 @@ var (
 	Tools     = tools.NewTools(nil)
 	User      = user.NewUser(nil)
 	Flow      = flow.NewFlow(nil)
-	Integration = integration.NewIntegration(nil)
 	//GetContext 获得一些上游传入的系统上下文参数
 	GetContext    = user.GetContext
 	GetContextMap = user.GetContextMap
+	Integration   = integration.NewIntegration(nil)
 )

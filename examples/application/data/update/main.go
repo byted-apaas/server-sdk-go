@@ -1,20 +1,17 @@
-// Copyright 2022 ByteDance Ltd. and/or its affiliates
-// SPDX-License-Identifier: MIT
-
 package main
 
 import (
 	"context"
 
-	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
-	"github.com/byted-apaas/server-sdk-go/service/data/field_type/opensdk"
+	"github.com/byted-apaas/server-sdk-go/opensdk"
+	fieldType "github.com/byted-apaas/server-sdk-go/service/data/field_type/opensdk"
 )
 
 type Lookup struct {
-	ID        int64                `json:"_id"`
-	Name      opensdk.Multilingual `json:"_name"`
-	IsDeleted bool                 `json:"_isDeleted"`
+	ID        int64                  `json:"_id"`
+	Name      fieldType.Multilingual `json:"_name"`
+	IsDeleted bool                   `json:"_isDeleted"`
 }
 
 type TestObject struct {
@@ -25,7 +22,7 @@ type TestObject struct {
 }
 
 func main() {
-	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
+	app := opensdk.NewApplication("***", "***").Env(constants.PlatformEnvDEV)
 
 	err := app.Data.Object("testObject").Update(context.Background(), 1742602772528183,
 		&TestObject{

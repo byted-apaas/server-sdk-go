@@ -12,13 +12,17 @@ import (
 type PlatformEnvType int
 
 const (
-	PlatformEnvLR PlatformEnvType = iota + 1
+	PlatformEnvDEV PlatformEnvType = iota + 1
+	PlatformEnvUAT
+	PlatformEnvLR
 	PlatformEnvPRE
 	PlatformEnvOnline
 )
 
 func (p PlatformEnvType) String() string {
 	switch p {
+	case PlatformEnvUAT:
+		return cConstants.EnvTypeStaging
 	case PlatformEnvLR:
 		return cConstants.EnvTypeLr
 	case PlatformEnvPRE:
@@ -53,28 +57,4 @@ const (
 
 const (
 	GlobalVariableCacheTableKey = "global-variable-cache-table"
-)
-
-type ProcessAuthFieldType int64
-
-const (
-	ProcessAuthFieldType_Default     ProcessAuthFieldType = 0
-	ProcessAuthFieldType_BothResult  ProcessAuthFieldType = 1
-	ProcessAuthFieldType_SliceResult ProcessAuthFieldType = 2
-	ProcessAuthFieldType_MapResult   ProcessAuthFieldType = 3
-)
-
-type SetSystemMod int64
-
-const (
-	SetSystemMod_NotSet  SetSystemMod = 0
-	SetSystemMod_FullSet SetSystemMod = 1
-	SetSystemMod_Other   SetSystemMod = 2
-)
-
-type CommitSetSystemMod int64
-
-const (
-	CommitSetSystemMod_NotSet      CommitSetSystemMod = 0
-	CommitSetSystemMod_SysFieldSet CommitSetSystemMod = 1
 )

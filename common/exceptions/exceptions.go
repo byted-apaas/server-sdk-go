@@ -18,7 +18,6 @@ const (
 
 	// ErrCode_RATE_LIMIT_ERROR限流错误码
 	ErrCode_Rate_Limit = cExceptions.ErrCodeRateLimitError
-
 	// ErrCode_Flow_NoPermission 无权限操作流程
 	ErrCode_Flow_NoPermission = cExceptions.ErrCodeFlowNoPermission
 	// ErrCode_Flow_NotExist 流程不存在
@@ -42,7 +41,7 @@ const (
 )
 
 var (
-	ErrTypeRecordNotFound = cExceptions.NewErrWithCodeV2(cExceptions.ErrCodeDataRecordNotFound, "data record not found", "")
+	ErrTypeRecordNotFound = cExceptions.NewErrWithCodeV2(ErrCode_Data_RecordNotFound, "data record not found", "")
 )
 
 func IsRecordNotFoundErr(err error) bool {

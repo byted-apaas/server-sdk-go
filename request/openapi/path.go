@@ -221,4 +221,3 @@ func GetAppAccessTokenPath(namespace, apiName string) string {
 func GetTenantAccessTokenPath(namespace, apiName string) string {
 	return cUtils.NewPathReplace(PathTenantAccessToken).Namespace(namespace).APIName(apiName).Path()
 }
-

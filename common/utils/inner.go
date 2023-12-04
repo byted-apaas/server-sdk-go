@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
@@ -57,9 +59,8 @@ func SetAppConfToCtx(ctx context.Context, appCtx *structs.AppCtx) context.Contex
 	ctx = context.WithValue(ctx, cConstants.CtxKeyOpenapiDomain, conf.OpenAPIDomain)
 	ctx = context.WithValue(ctx, cConstants.CtxKeyFaaSInfraDomain, conf.FaaSInfraDomain)
 	ctx = context.WithValue(ctx, cConstants.CtxKeyAGWDomain, conf.InnerAPIDomain)
-	boe := conf.BOE
-	if len(boe) > 0 {
-		ctx = cUtils.SetEnvBoeToCtx(ctx, boe)
+	if strings.HasSuffix(targetEnv.String(), "boe") {
+		ctx = cUtils.SetEnvBoeToCtx(ctx, "boe")
 	}
 
 	return ctx
@@ -143,6 +144,14 @@ func ParseFlowVariableToMap(variables intern.ExecuteFlowVariables) map[string]in
 		res[variable.APIName] = variable.Value
 	}
 	return res
+}
+
+func SetUserMetaInfoToContext(ctx context.Context, appCtx *structs.AppCtx) context.Context {
+	if appCtx.IsOpenSDK() {
+		return ctx
+	}
+	ctx = context.WithValue(ctx, cConstants.HttpHeaderKeyUser, strconv.FormatInt(cUtils.GetUserIDFromCtx(ctx), 10))
+	return ctx
 }
 
 func StrInStrs(strs []string, str string) bool {

@@ -20,8 +20,8 @@ type Application struct {
 	Data        data.IDataV2
 	Resources   *resources_v2.Resources
 	Tools       tools.ITools
-	appCtx      *structs.AppCtx
 	Integration integration.IIntegration
+	appCtx      *structs.AppCtx
 }
 
 func NewApplication(clientID, clientSecret string) *Application {
@@ -32,8 +32,8 @@ func NewApplication(clientID, clientSecret string) *Application {
 	return &Application{
 		Data:        dataImpl.NewDataV2(appCtx),
 		Resources:   resources_v2.NewResources(appCtx),
-		Integration: integration.NewIntegration(appCtx),
 		Tools:       tools.NewTools(appCtx),
+		Integration: integration.NewIntegration(appCtx),
 		appCtx:      appCtx,
 	}
 }

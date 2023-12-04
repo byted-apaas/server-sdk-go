@@ -3,7 +3,9 @@
 
 package faassdk
 
-import "github.com/byted-apaas/server-sdk-go/common/structs/intern"
+import (
+	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
+)
 
 const (
 	ZH = intern.LanguageCodeZH

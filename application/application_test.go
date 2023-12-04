@@ -1,23 +1,17 @@
-// Copyright 2022 ByteDance Ltd. and/or its affiliates
-// SPDX-License-Identifier: MIT
-
-package api
+package application
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
-	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/service/data/cond"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
-	"github.com/byted-apaas/server-sdk-go/service/tasks"
 )
 
 var (
@@ -25,20 +19,29 @@ var (
 )
 
 func init() {
-	ctx = cUtils.SetDebugTypeToCtx(ctx, cConstants.DebugTypeLocal)
-	ctx = context.WithValue(ctx, cConstants.CtxKeyEnvBoe, "boe")
-	_ = os.Setenv("ENV", "development")
-	_ = os.Setenv("KTenantName", "xxx")
-	_ = os.Setenv("KNamespace", "xxx")
-	_ = os.Setenv("KSvcID", "xxx")
-	_ = os.Setenv("KClientID", "xxx")
-	_ = os.Setenv("KClientSecret", "xxx")
-	//_ = os.Setenv("KOpenApiDomain", "xxx")
-	_ = os.Setenv("KOpenApiDomain", "xxx")
-	_ = os.Setenv("KFaaSInfraDomain", "xxx")
-	//_ = os.Setenv("KFaaSInfraDomain", "xxx")
-	_ = os.Setenv("CONSUL_HTTP_HOST", "xxx")
-	_ = os.Setenv("RUNTIME_IDC_NAME", "boe")
+}
+
+func TestDataFindV3(t *testing.T) {
+	type TestObject struct {
+		ID        int64                  `json:"_id"`
+		Text      string                 `json:"text"`
+		Number    int64                  `json:"number"`
+		CreatedBy map[string]interface{} `json:"_createdBy,omitempty"`
+		UpdatedBy map[string]interface{} `json:"_updatedBy,omitempty"`
+	}
+	var records []*TestObject
+	var err error
+	//create, err := Data.Object("test").Create(ctx, TestObject{
+	//	Text:   "test",
+	//	Number: 23,
+	//})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//cUtils.PrintLog(create)
+	err = Data.Object("test").Where(nil).Find(ctx, &records)
+	assert.Nil(t, err)
+	cUtils.PrintLog(records)
 }
 
 func TestDataFindOne(t *testing.T) {
@@ -340,26 +343,6 @@ func TestTransactionBatchUpdateDelete(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestFunctionInvoke(t *testing.T) {
-	var result interface{}
-	err := Function("syncFunc_v2").Invoke(ctx, map[string]interface{}{"a": "aa"}, &result)
-	assert.Nil(t, err)
-	cUtils.PrintLog(result)
-}
-
-func TestFunctionInvokeAsync(t *testing.T) {
-	taskID, err := Tasks.CreateAsyncTask(ctx, "syncFunc_v2", map[string]interface{}{"a": "aa"})
-	assert.Nil(t, err)
-	cUtils.PrintLog(taskID)
-}
-
-func TestFunctionInvokeDistributed(t *testing.T) {
-	taskID, err := Tasks.CreateDistributedTask(ctx, []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "handlerFunc_v2",
-		"progressCallbackFunc_v2", "completedCallbackFunc_v2", tasks.NewOptions(5, 5, 1))
-	assert.Nil(t, err)
-	cUtils.PrintLog(taskID)
-}
-
 func TestCreateMsg(t *testing.T) {
 	taskID, err := Msg.NotifyCenter.Create(ctx, &structs.MessageBody{
 		Icon:        "info",
@@ -384,7 +367,7 @@ func TestUpdateMsg(t *testing.T) {
 }
 
 func TestUploadAttachment(t *testing.T) {
-	result, err := Resources.File.UploadByPath(ctx, "api_test.go", "api_test.go", 0)
+	result, err := Resources.File.UploadByPath(ctx, "application_test.go", "application_test.go", 0)
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
 }
@@ -396,7 +379,7 @@ func TestDownloadAttachment(t *testing.T) {
 }
 
 func TestGlobalVar(t *testing.T) {
-	result, err := GetVar(ctx, "key1")
+	result, err := GlobalVar.GetVar(ctx, "key1")
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
 }

@@ -1,19 +1,16 @@
-// Copyright 2022 ByteDance Ltd. and/or its affiliates
-// SPDX-License-Identifier: MIT
-
 package main
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
+	"github.com/byted-apaas/server-sdk-go/opensdk"
 	"github.com/byted-apaas/server-sdk-go/service/tools"
 )
 
 func main() {
-	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
+	app := opensdk.NewApplication("***", "***").Env(constants.PlatformEnvUAT)
 
 	executeTimes := 0
 	// 失败时需要重试的函数

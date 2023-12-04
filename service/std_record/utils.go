@@ -23,22 +23,23 @@ func ConvertStdRecords(records interface{}) interface{} {
 	}
 
 	var newRecords []interface{}
-	switch records.(type) {
-	case []Record:
-		rs := records.([]Record)
+	if rs, ok := records.([]interface{}); ok {
+		for _, r := range rs {
+			newRecords = append(newRecords, ConvertStdRecord(r))
+		}
+	} else if rs, ok := records.([]Record); ok {
 		for i := range rs {
 			newRecords = append(newRecords, rs[i].Record)
 		}
-		return newRecords
-	case []*Record:
-		rs := records.([]*Record)
+	} else if rs, ok := records.([]*Record); ok {
 		for i := range rs {
 			newRecords = append(newRecords, rs[i].Record)
 		}
-		return newRecords
-	default:
+	} else {
 		return records
 	}
+
+	return newRecords
 }
 
 func ConvertStdRecordsFromMap(records map[int64]interface{}) map[int64]interface{} {

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/tidwall/gjson"
+
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cExceptions "github.com/byted-apaas/server-common-go/exceptions"
 	cHttp "github.com/byted-apaas/server-common-go/http"
@@ -18,7 +20,6 @@ import (
 	"github.com/byted-apaas/server-sdk-go/request"
 	"github.com/byted-apaas/server-sdk-go/request/common"
 	"github.com/byted-apaas/server-sdk-go/service/tasks"
-	"github.com/tidwall/gjson"
 )
 
 type requestFaaSInfra struct{}

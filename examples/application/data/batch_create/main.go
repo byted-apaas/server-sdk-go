@@ -7,15 +7,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
-	"github.com/byted-apaas/server-sdk-go/service/data/field_type/opensdk"
+	"github.com/byted-apaas/server-sdk-go/opensdk"
+	fieldType "github.com/byted-apaas/server-sdk-go/service/data/field_type/opensdk"
 )
 
 type Lookup struct {
-	ID        int64                `json:"_id"`
-	Name      opensdk.Multilingual `json:"_name"`
-	IsDeleted bool                 `json:"_isDeleted"`
+	ID        int64                  `json:"_id"`
+	Name      fieldType.Multilingual `json:"_name"`
+	IsDeleted bool                   `json:"_isDeleted"`
 }
 
 type TestObject struct {
@@ -26,7 +26,7 @@ type TestObject struct {
 }
 
 func main() {
-	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
+	app := opensdk.NewApplication("c_c9c02f05c7c14131a6b4", "**").Env(constants.PlatformEnvDEV)
 
 	// 批量创建
 	records1, err := app.Data.Object("testObject").BatchCreate(context.Background(),

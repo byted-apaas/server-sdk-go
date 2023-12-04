@@ -37,6 +37,7 @@ func Init() {
 
 func TestMain(m *testing.M) {
 	Init()
+
 	m.Run()
 }
 

@@ -3,7 +3,7 @@ module github.com/byted-apaas/server-sdk-go
 go 1.16
 
 require (
-	github.com/byted-apaas/server-common-go v0.0.23 // indirect
+	github.com/byted-apaas/server-common-go v0.0.24
 	github.com/google/uuid v1.3.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021

@@ -74,6 +74,8 @@ type IRequestOpenapi interface {
 	GetAppAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.AppAccessToken, error)
 	GetDefaultTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.TenantAccessToken, error)
 	GetDefaultAppAccessToken(ctx context.Context, appCtx *structs.AppCtx) (*structs.AppAccessToken, error)
+	GetApprovalInstanceList(ctx context.Context, appCtx *structs.AppCtx, options *structs.ApprovalInstanceListOptions) (*structs.ApprovalInstanceList, error)
+	GetApprovalInstance(ctx context.Context, appCtx *structs.AppCtx, options *structs.GetApprovalInstanceOptions) (*structs.ApprovalInstance, error)
 }
 
 //go:generate mockery --name=IRequestOpenapi --structname=RequestOpenapi --filename=RequestOpenapi.go

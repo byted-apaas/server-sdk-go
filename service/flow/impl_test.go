@@ -3,6 +3,7 @@ package flow
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,6 +19,14 @@ var (
 )
 
 func init() {
+	os.Setenv("KClientID", "d9f2925541ccf9d4b6f1563786989075adc39d40955d67baeb0f213d3bcfa244")
+	os.Setenv("KClientSecret", "99c44d6a066d15f26541c10cc2095c1e49bc3cafb7fcb2e4bf1a847fbb81a7eef5bbd4fccd5ff77ca9e510a5a564fe93")
+	os.Setenv("KInnerAPIDomain", "https://apaas-innerapi-boe.bytedance.net")
+	os.Setenv("KOpenApiDomain", "http://oapi-kunlun-staging-boe.byted.org")
+	os.Setenv("KFaaSInfraDomain", "http://apaas-faasinfra-staging-boe.bytedance.net")
+	os.Setenv("KTenantName", "xuzhaoning-dev702")
+	os.Setenv("KNamespace", "package_55d00d__c")
+	ctx = cUtils.SetTTEnvToCtx(ctx, "boe_openapi_workflow")
 }
 
 func TestGetUserTaskInfoByInstance(t *testing.T) {
@@ -97,4 +106,18 @@ func GPJSONStr(params interface{}) string {
 	marshal, _ := json.Marshal(params)
 	str := string(marshal)
 	return str
+}
+
+func TestGetApprovalInstanceList(t *testing.T) {
+	approvalInstanceList, err := wf.GetApprovalInstanceList(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog("approvalInstanceList: ", approvalInstanceList)
+
+	approvalInstance, err := wf.GetApprovalInstance(ctx, &structs.GetApprovalInstanceOptions{ApprovalInstanceId: approvalInstanceList.ApprovalInstanceIDs[0]})
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog("approvalInstance: ", approvalInstance)
 }

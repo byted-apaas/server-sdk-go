@@ -5,6 +5,7 @@ package metadata
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	cUtils "github.com/byted-apaas/server-common-go/utils"
@@ -17,6 +18,13 @@ var (
 )
 
 func Init() {
+	os.Setenv("KClientID", "01d8a2f7a5fbeb687e17f9d118cd6e68db941689e224ab8e158b930880b0d3ae")
+	os.Setenv("KClientSecret", "b912ef8f3dc309ae4568369168f8b5b60e274ddfb5a8706d082277beba699b8ebdbfeafe091fe9efd3f152b519f369d7")
+	os.Setenv("KInnerAPIDomain", "https://apaas-innerapi-boe.bytedance.net")
+	os.Setenv("KOpenApiDomain", "http://oapi-kunlun-staging-boe.byted.org")
+	os.Setenv("KFaaSInfraDomain", "http://apaas-faasinfra-staging-boe.bytedance.net")
+	os.Setenv("KTenantName", "zhouweixin02-dev16")
+	os.Setenv("KNamespace", "sdk_sample__c")
 }
 
 func TestMain(m *testing.M) {
@@ -31,7 +39,7 @@ func TestGetFields(t *testing.T) {
 	}
 	// 调用接口，decode 拿到结果
 	res := Result{}
-	err := m.Object("all_object").GetFields(ctx, &res)
+	err := m.Object("allFieldObject").GetFields(ctx, &res)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +47,7 @@ func TestGetFields(t *testing.T) {
 
 	// 2. 通过 map 获取所有, key 即为 apiName
 	mapRes := make(map[string]interface{})
-	err = m.Object("all_object").GetFields(ctx, &mapRes)
+	err = m.Object("allFieldObject").GetFields(ctx, &mapRes)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +57,7 @@ func TestGetFields(t *testing.T) {
 func TestGetField(t *testing.T) {
 	// 1. 使用 fields 定义好的结构体，获取
 	res := fields.Multilingual{}
-	err := m.Object("all_object").GetField(ctx, "_createdBy", &res)
+	err := m.Object("allFieldObject").GetField(ctx, "_createdBy", &res)
 	if err != nil {
 		panic(err)
 	}
@@ -190,4 +198,85 @@ func TestGetField_All(t *testing.T) {
 		panic(err)
 	}
 	cUtils.PrintLog(text)
+}
+
+func TestGetFieldBigint(t *testing.T) {
+	var bigint interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "bigint", &bigint)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(bigint)
+}
+
+func TestGetFieldDecimal(t *testing.T) {
+	var decimal interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "decimal", &decimal)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(decimal)
+}
+
+func TestGetFieldRegion(t *testing.T) {
+	var region interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "region", &region)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(region)
+}
+
+func TestGetFieldRollupCount(t *testing.T) {
+	var field interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "rollup_count", &field)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(field)
+}
+
+func TestGetFieldRollupAvg(t *testing.T) {
+	var field interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "rollup_avg", &field)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(field)
+}
+
+func TestGetFieldRollupSum(t *testing.T) {
+	var field interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "rollup_sum", &field)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(field)
+}
+
+func TestGetFieldRollupMax(t *testing.T) {
+	var field interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "rollup_max", &field)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(field)
+}
+
+func TestGetFieldRollupMin(t *testing.T) {
+	var field interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "rollup_min", &field)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(field)
+}
+
+func TestGetFieldText(t *testing.T) {
+	var region interface{}
+	err := m.Object("allFieldObject").GetField(ctx, "text", &region)
+	if err != nil {
+		panic(err)
+	}
+	cUtils.PrintLog(region)
 }

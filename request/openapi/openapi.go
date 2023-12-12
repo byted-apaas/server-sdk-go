@@ -1343,8 +1343,8 @@ func (r *RequestHttp) GetApprovalInstanceList(ctx context.Context, appCtx *struc
 		if options.EndTime > 0 {
 			params.Set("end_time", fmt.Sprintf("%d", options.EndTime))
 		}
-		if options.Limit > 0 {
-			params.Set("limit", fmt.Sprintf("%d", options.Limit))
+		if options.PageSize > 0 {
+			params.Set("page_size", fmt.Sprintf("%d", options.PageSize))
 		}
 		if options.PageToken != "" {
 			params.Set("page_token", options.PageToken)

@@ -3,7 +3,7 @@ package structs
 type ApprovalInstanceListOptions struct {
 	StartTime int64  `json:"startTime"`
 	EndTime   int64  `json:"endTime"`
-	Limit     int64  `json:"limit"`
+	PageSize  int64  `json:"pageSize"`
 	PageToken string `json:"pageToken"`
 }
 

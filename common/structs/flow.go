@@ -40,6 +40,8 @@ type ApprovalInstance struct {
 type ApprovalTask struct {
 	// 审批任务ID
 	ID int64 `json:"id"`
+	// 任务类型，审批、填写任务、抄送
+	TaskType string `json:"taskType"`
 	// 审批任务状态 in_process agreed rejected canceled failed completed unstarted auto_end terminated
 	TaskStatus string `json:"taskStatus"`
 	// 任务开始时间
@@ -94,6 +96,8 @@ type GetApprovalInstanceResp struct {
 		Tasks []*struct {
 			// 审批任务ID
 			ID int64 `json:"label"`
+			// 任务类型，审批、填写任务、抄送
+			TaskType string `json:"task_type"`
 			// 审批任务状态 in_process agreed rejected canceled failed completed unstarted auto_end terminated
 			TaskStatus string `json:"task_status"`
 			// 任务开始时间
@@ -146,6 +150,7 @@ func (r *GetApprovalInstanceResp) ToApprovalInstance() *ApprovalInstance {
 		}
 		result.Tasks = append(result.Tasks, &ApprovalTask{
 			ID:            task.ID,
+			TaskType:      task.TaskType,
 			TaskStatus:    task.TaskStatus,
 			TaskStartTime: task.TaskStartTime,
 			TaskEndTime:   task.TaskEndTime,

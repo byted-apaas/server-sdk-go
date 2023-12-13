@@ -21,7 +21,7 @@ func BuildInvokeParamsStr(ctx context.Context, apiName string, params interface{
 		"apiAlias":    apiName,
 		"params":      bizParams,
 		"context":     sysParams,
-		"triggerType": "workflow",
+		"triggerType": "default-trigger",
 	}, nil
 }
 
@@ -30,7 +30,7 @@ func BuildInvokeParamsObj(ctx context.Context, apiName string, params interface{
 		"apiAlias":    apiName,
 		"params":      params,
 		"context":     BuildInvokeSysParams(ctx),
-		"triggerType": "workflow",
+		"triggerType": "default-trigger",
 	}, nil
 }
 

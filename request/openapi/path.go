@@ -66,6 +66,8 @@ const (
 	PathDefaultAppAccessToken    = "/api/integration/v1/namespaces/:namespace/defaultLark/appAccessToken"
 	PathAppAccessToken           = "/api/integration/v1/namespaces/:namespace/lark/appAccessToken/:apiName"
 	PathTenantAccessToken        = "/api/integration/v1/namespaces/:namespace/lark/tenantAccessToken/:apiName"
+	PathGetApprovalInstanceList  = "/api/approval/v1/approval_instances/listids"
+	PathGetApprovalInstance      = "/api/approval/v1/approval_instances/:recordID"
 )
 
 // GetPathGetRecordsV2 新版接口
@@ -220,4 +222,8 @@ func GetAppAccessTokenPath(namespace, apiName string) string {
 
 func GetTenantAccessTokenPath(namespace, apiName string) string {
 	return cUtils.NewPathReplace(PathTenantAccessToken).Namespace(namespace).APIName(apiName).Path()
+}
+
+func GetGetApprovalInstancePath(instanceID int64) string {
+	return cUtils.NewPathReplace(PathGetApprovalInstance).RecordID(instanceID).Path()
 }

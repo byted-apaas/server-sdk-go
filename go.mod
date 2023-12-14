@@ -3,7 +3,7 @@ module github.com/byted-apaas/server-sdk-go
 go 1.16
 
 require (
-	github.com/byted-apaas/server-common-go v0.0.26
+	github.com/byted-apaas/server-common-go v0.0.27-0.20231214060210-8be812862613
 	github.com/google/uuid v1.3.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/muesli/cache2go v0.0.0-20221011235721-518229cd8021
@@ -23,6 +23,3 @@ retract v0.0.27
 
 // Deprecated
 retract v0.0.29
-
-// Deprecated
-retract v0.0.30

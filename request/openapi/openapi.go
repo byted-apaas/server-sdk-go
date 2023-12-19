@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -1381,14 +1380,12 @@ func (r *RequestHttp) GetApprovalInstance(ctx context.Context, appCtx *structs.A
 
 	// 构造请求参数
 	params := url.Values{}
-	var includes []string
 	if options.IncludeFormData {
-		includes = append(includes, "")
+		params.Add("includes", "ApprovalTask_FormData")
 	}
 	if options.IncludeContent {
-		includes = append(includes, "")
+		params.Add("includes", "ApprovalComment_Content")
 	}
-	params.Set("includes", strings.Join(includes, ","))
 
 	// 发起请求
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetGetApprovalInstancePath(options.ApprovalInstanceId)+"?"+params.Encode(), nil, cHttp.AppTokenMiddleware))

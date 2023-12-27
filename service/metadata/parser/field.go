@@ -335,6 +335,62 @@ func parseFormula(f *structs.Field) (*fields.Formula, error) {
 	}, nil
 }
 
+func parseBigint(f *structs.Field) (*fields.Bigint, error) {
+	s := &structs.NestedFloatSetting{}
+	if err := utils.Decode(f.Type.Settings, &s); err != nil {
+		return nil, err
+	}
+	return &fields.Bigint{
+		FieldBase: parseBase(f),
+		Required:  f.Required,
+		Unique:    transUnique(f),
+	}, nil
+}
+
+func parseDecimal(f *structs.Field) (*fields.Decimal, error) {
+	s := &structs.NestedFloatSetting{}
+	if err := utils.Decode(f.Type.Settings, &s); err != nil {
+		return nil, err
+	}
+	return &fields.Decimal{
+		FieldBase:           parseBase(f),
+		Required:            f.Required,
+		Unique:              transUnique(f),
+		DisplayAsPercentage: s.DisplayAsPercentage,
+		DecimalPlacesNumber: s.DecimalPlaces,
+	}, nil
+}
+
+func parseRollup(f *structs.Field) (*fields.Rollup, error) {
+	s := &structs.NestedRollupSetting{}
+	if err := utils.Decode(f.Type.Settings, &s); err != nil {
+		return nil, err
+	}
+	return &fields.Rollup{
+		FieldBase:                parseBase(f),
+		RollupType:               s.RollupFunctionType,
+		RollupObjectApiName:      s.RollupedObject.ApiName,
+		RollupFieldApiName:       s.RollupedField.ApiName,
+		RollupLookupFieldApiName: s.RollupedLookupField.ApiName,
+		Filter:                   s.RollupRangeFilter,
+	}, nil
+}
+
+func parseRegion(f *structs.Field) (*fields.Region, error) {
+	s := structs.NestedRegionSetting{}
+	if err := utils.Decode(f.Type.Settings, &s); err != nil {
+		return nil, err
+	}
+	return &fields.Region{
+		FieldBase:   parseBase(f),
+		Required:    f.Required,
+		Multiple:    s.Multiple,
+		OptionLevel: s.OptionLevel,
+		StrictLevel: s.StrictLevel,
+		Filter:      s.Filter,
+	}, nil
+}
+
 func ParseField(f *structs.Field) (res interface{}, err error) {
 	switch f.Type.Name {
 	case constants.OpTextType:
@@ -404,6 +460,18 @@ func ParseField(f *structs.Field) (res interface{}, err error) {
 	case constants.OpInheritFieldType:
 		break
 	case constants.OpGIDFieldType:
+		break
+	case constants.OpBigintFieldType:
+		res, err = parseBigint(f)
+		break
+	case constants.OpDecimalFieldType:
+		res, err = parseDecimal(f)
+		break
+	case constants.OpRollupFieldType:
+		res, err = parseRollup(f)
+		break
+	case constants.OpRegionFieldType:
+		res, err = parseRegion(f)
 		break
 	}
 	return

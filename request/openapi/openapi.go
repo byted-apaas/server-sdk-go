@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -1327,4 +1328,77 @@ func (r *RequestHttp) GetDefaultAppAccessToken(ctx context.Context, appCtx *stru
 		AppAccessToken: inRes.AppAccessToken,
 		AppID:          inRes.AppID,
 	}, nil
+}
+
+func (r *RequestHttp) GetApprovalInstanceList(ctx context.Context, appCtx *structs.AppCtx, options *structs.ApprovalInstanceListOptions) (approvalInstanceList *structs.ApprovalInstanceList, err error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetApprovalInstanceList)
+
+	// 构造请求参数
+	params := url.Values{}
+	if options != nil {
+		if options.StartTime > 0 {
+			params.Set("start_time", fmt.Sprintf("%d", options.StartTime))
+		}
+		if options.EndTime > 0 {
+			params.Set("end_time", fmt.Sprintf("%d", options.EndTime))
+		}
+		if options.PageSize > 0 {
+			params.Set("page_size", fmt.Sprintf("%d", options.PageSize))
+		}
+		if options.PageToken != "" {
+			params.Set("page_token", options.PageToken)
+		}
+	}
+
+	// 发起请求
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, PathGetApprovalInstanceList+"?"+params.Encode(), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	// 处理应答
+	var inRes structs.GetApprovalInstanceListResp
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InternalError("[GetApprovalInstanceList] failed, err: %v", err)
+	}
+
+	return &structs.ApprovalInstanceList{
+		ApprovalInstanceIDs: inRes.ApprovalInstanceIDs,
+		PageToken:           inRes.PageToken,
+		Count:               inRes.Count,
+		HasMore:             inRes.HasMore,
+	}, nil
+}
+
+func (r *RequestHttp) GetApprovalInstance(ctx context.Context, appCtx *structs.AppCtx, options *structs.GetApprovalInstanceOptions) (*structs.ApprovalInstance, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetApprovalInstance)
+
+	if options == nil || options.ApprovalInstanceId <= 0 {
+		return nil, cExceptions.InvalidParamError("options.ApprovalInstanceId is invalid")
+	}
+
+	// 构造请求参数
+	params := url.Values{}
+	if options.IncludeFormData {
+		params.Add("includes", "ApprovalTask_FormData")
+	}
+	if options.IncludeContent {
+		params.Add("includes", "ApprovalComment_Content")
+	}
+
+	// 发起请求
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().Get(ctx, GetGetApprovalInstancePath(options.ApprovalInstanceId)+"?"+params.Encode(), nil, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	// 处理应答
+	var inRes structs.GetApprovalInstanceResp
+	err = cUtils.JsonUnmarshalBytes(data, &inRes)
+	if err != nil {
+		return nil, cExceptions.InternalError("[GetApprovalInstance] failed, err: %v", err)
+	}
+
+	return inRes.ToApprovalInstance(), nil
 }

@@ -768,6 +768,11 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 		FuzzySearch:    q.fuzzySearch,
 	}
 
+	// 当用户未设置排序字段时，强制指定为主键增序，避免数据重复
+	if len(param.Order) == 0 {
+		param.Order = []*structs.Order{{Field: "_id", Direction: "asc"}}
+	}
+
 	// 未设置 limit 时，不通过 limit 判断结束条件
 	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitDefault {
 		param.Offset = i

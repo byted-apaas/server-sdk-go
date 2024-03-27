@@ -23,3 +23,12 @@ retract v0.0.27
 
 // Deprecated
 retract v0.0.29
+
+// Deprecated
+retract v0.0.30
+
+// Deprecated
+retract v0.0.31
+
+// Deprecated
+retract v0.0.32

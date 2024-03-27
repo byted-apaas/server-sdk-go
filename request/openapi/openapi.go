@@ -1017,60 +1017,13 @@ func (r *RequestHttp) UpdateMessage(ctx context.Context, appCtx *structs.AppCtx,
 	return nil
 }
 
-// GetGlobalConfig
-func (r *RequestHttp) GetGlobalConfig(ctx context.Context, appCtx *structs.AppCtx, key string) (string, error) {
-	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetAllGlobalConfigs)
-
-	pageSize, offset := 100, 0
-	page := map[string]interface{}{
-		"offset": 0,
-		"limit":  pageSize,
-	}
-	body := map[string]interface{}{
-		"biz_type": "GlobalVariables",
-		"used_by":  "UsedBySystem",
-		"filter":   page,
-	}
-
-	namespace, err := utils.GetNamespace(ctx, appCtx)
-	if err != nil {
-		return "", err
-	}
-
-	for i := 0; ; i++ {
-		page["offset"] = offset * i
-		data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
-		if err != nil {
-			return "", err
-		}
-
-		keyToValue := structs.GlobalConfigResult{}
-		err = cUtils.JsonUnmarshalBytes(data, &keyToValue)
-		if err != nil {
-			return "", cExceptions.InternalError("GetAllGlobalConfig failed, err: %v", err)
-		}
-
-		for _, c := range keyToValue.Configs {
-			if c.Key == key {
-				return c.Value, nil
-			}
-		}
-
-		if len(keyToValue.Configs) < pageSize {
-			break
-		}
-	}
-
-	return "", cExceptions.InvalidParamError("The global config (%s) does not exist", key)
-}
-
 // GetAllGlobalConfig
 func (r *RequestHttp) GetAllGlobalConfig(ctx context.Context, appCtx *structs.AppCtx) (map[string]string, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetAllGlobalConfigs)
 
 	pageSize, offset := 100, 0
 	page := map[string]interface{}{
-		"offset": 0,
+		"offset": offset,
 		"limit":  pageSize,
 	}
 	body := map[string]interface{}{
@@ -1086,7 +1039,7 @@ func (r *RequestHttp) GetAllGlobalConfig(ctx context.Context, appCtx *structs.Ap
 
 	keyToValue := map[string]string{}
 	for i := 0; ; i++ {
-		page["offset"] = offset * i
+		page["offset"] = pageSize * i
 		data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathGetAllGlobalConfig(namespace), nil, body, cHttp.AppTokenMiddleware))
 		if err != nil {
 			return nil, err

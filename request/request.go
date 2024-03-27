@@ -52,7 +52,6 @@ type IRequestOpenapi interface {
 	CreateMessage(ctx context.Context, appCtx *structs.AppCtx, param map[string]interface{}) (int64, error)
 	UpdateMessage(ctx context.Context, appCtx *structs.AppCtx, param map[string]interface{}) error
 
-	GetGlobalConfig(ctx context.Context, appCtx *structs.AppCtx, key string) (string, error)
 	GetAllGlobalConfig(ctx context.Context, appCtx *structs.AppCtx) (map[string]string, error)
 
 	GetFields(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string) (*structs.ObjFields, error)

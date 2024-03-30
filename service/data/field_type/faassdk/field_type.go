@@ -40,7 +40,7 @@ type Avatar struct {
 	Image   AvatarImages `json:"image"`
 	Color   string       `json:"color"`
 	ColorID string       `json:"color_id"`
-	Content int64        `json:"content"`
+	Content interface{}  `json:"content"`
 }
 
 // RichTextConfig 富文本配置

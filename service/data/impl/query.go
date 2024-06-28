@@ -84,18 +84,24 @@ func (q *Query) FindStream(ctx context.Context, recordType reflect.Type, handler
 		return q.err
 	}
 
+	// 设置每页的 limit
+	pageLimit := int64(constants.PageLimitDefault)
+	if len(params) != 0 && params[0].PageLimit > 0 {
+		pageLimit = params[0].PageLimit
+	}
+
 	if q.appCtx.IsOpenSDK() {
 		if len(q.order) > 0 || q.offset > 0 || len(params) == 0 || params[0].IDGetter == nil {
-			return q.findStreamByLimitOffsetV2(ctx, recordType, handler, params...)
+			return q.findStreamByLimitOffsetV2(ctx, recordType, handler, pageLimit, params...)
 		}
-		return q.findStreamByIDV2(ctx, recordType, handler, params[0].IDGetter, params...)
+		return q.findStreamByIDV2(ctx, recordType, handler, params[0].IDGetter, pageLimit, params...)
 	}
 
 	// 如果设置了 order 或 设置了 offset 或 未设置 IDGetter 走 offset、limit 分页
 	if len(q.order) > 0 || q.offset > 0 || len(params) == 0 || params[0].IDGetter == nil {
-		return q.findStreamByLimitOffset(ctx, recordType, handler, params...)
+		return q.findStreamByLimitOffset(ctx, recordType, handler, pageLimit, params...)
 	}
-	return q.findStreamByID(ctx, recordType, handler, params[0].IDGetter, params...)
+	return q.findStreamByID(ctx, recordType, handler, params[0].IDGetter, pageLimit, params...)
 }
 
 func (q *Query) FindAll(ctx context.Context, records interface{}) error {
@@ -747,7 +753,8 @@ func CheckAndGetSlice(recordType reflect.Type) (reflect.Value, error) {
 	return reflect.MakeSlice(reflect.SliceOf(recordType), 0, 0), nil
 }
 
-func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
+func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
+	pageLimit int64, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -759,7 +766,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 	}
 
 	param := &structs.GetRecordsReqParam{
-		Limit:          constants.PageLimitDefault,
+		Limit:          pageLimit,
 		Offset:         q.offset,
 		FieldApiNames:  q.fields,
 		Order:          q.order,
@@ -768,17 +775,22 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 		FuzzySearch:    q.fuzzySearch,
 	}
 
+	// 当用户未设置排序字段时，强制指定为主键增序，避免数据重复
+	if len(param.Order) == 0 {
+		param.Order = []*structs.Order{{Field: "_id", Direction: "asc"}}
+	}
+
 	// 未设置 limit 时，不通过 limit 判断结束条件
-	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitDefault {
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += pageLimit {
 		param.Offset = i
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitDefault
+				return pageLimit
 			}
-			if q.offset+q.limit-i < constants.PageLimitDefault {
+			if q.offset+q.limit-i < pageLimit {
 				return q.offset + q.limit - i
 			}
-			return constants.PageLimitDefault
+			return pageLimit
 		}()
 		if param.Limit <= 0 {
 			break
@@ -810,7 +822,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitDefault {
+		if perRecords.Elem().Len() < int(pageLimit) {
 			break
 		}
 	}
@@ -819,7 +831,7 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 }
 
 func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
-	idGetter func(interface{}) (int64, error), params ...structs.FindStreamParam) error {
+	idGetter func(interface{}) (int64, error), pageLimit int64, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -844,7 +856,7 @@ func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, han
 	criterion.Conditions = append(criterion.Conditions, idCondition)
 
 	param := &structs.GetRecordsReqParam{
-		Limit:          constants.PageLimitDefault,
+		Limit:          pageLimit,
 		Offset:         0,
 		FieldApiNames:  q.fields,
 		Order:          []*structs.Order{{Field: "_id", Direction: "asc"}},
@@ -857,12 +869,12 @@ func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, han
 		idCondition.Right.Settings.Data = maxID
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitDefault
+				return pageLimit
 			}
-			if q.limit-int64(queryCount) < constants.PageLimitDefault {
+			if q.limit-int64(queryCount) < pageLimit {
 				return q.limit - int64(queryCount)
 			}
-			return constants.PageLimitDefault
+			return pageLimit
 		}()
 		if param.Limit <= 0 {
 			break
@@ -904,7 +916,7 @@ func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, han
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitDefault {
+		if perRecords.Elem().Len() < int(pageLimit) {
 			break
 		}
 	}
@@ -912,14 +924,15 @@ func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, han
 	return nil
 }
 
-func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error {
+func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
+	pageLimit int64, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
 	}
 
 	param := &structs.GetRecordsReqParamV2{
-		Limit:  constants.PageLimitDefault,
+		Limit:  pageLimit,
 		Offset: q.offset,
 		Fields: q.fields,
 		Sort:   q.order,
@@ -928,16 +941,16 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 	}
 
 	// 未设置 limit 时，不通过 limit 判断结束条件
-	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += constants.PageLimitDefault {
+	for i := q.offset; !q.isSetLimit || i < q.offset+q.limit; i += pageLimit {
 		param.Offset = i
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitDefault
+				return pageLimit
 			}
-			if q.offset+q.limit-i < constants.PageLimitDefault {
+			if q.offset+q.limit-i < pageLimit {
 				return q.offset + q.limit - i
 			}
-			return constants.PageLimitDefault
+			return pageLimit
 		}()
 		if param.Limit <= 0 {
 			break
@@ -969,7 +982,7 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitDefault {
+		if perRecords.Elem().Len() < int(pageLimit) {
 			break
 		}
 	}
@@ -978,7 +991,7 @@ func (q *Query) findStreamByLimitOffsetV2(ctx context.Context, recordType reflec
 }
 
 func (q *Query) findStreamByIDV2(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error,
-	idGetter func(interface{}) (int64, error), params ...structs.FindStreamParam) error {
+	idGetter func(interface{}) (int64, error), pageLimit int64, params ...structs.FindStreamParam) error {
 	reflectResults, err := CheckAndGetSlice(recordType)
 	if err != nil {
 		return err
@@ -992,7 +1005,7 @@ func (q *Query) findStreamByIDV2(ctx context.Context, recordType reflect.Type, h
 	conditions = append(conditions, idCondition)
 
 	param := &structs.GetRecordsReqParamV2{
-		Limit:  constants.PageLimitDefault,
+		Limit:  pageLimit,
 		Offset: 0,
 		Fields: q.fields,
 		Sort:   []*structs.Order{{Field: "_id", Direction: "asc"}},
@@ -1004,12 +1017,12 @@ func (q *Query) findStreamByIDV2(ctx context.Context, recordType reflect.Type, h
 		idCondition.RightValue = maxID
 		param.Limit = func() int64 {
 			if !q.isSetLimit {
-				return constants.PageLimitDefault
+				return pageLimit
 			}
-			if q.limit-int64(queryCount) < constants.PageLimitDefault {
+			if q.limit-int64(queryCount) < pageLimit {
 				return q.limit - int64(queryCount)
 			}
-			return constants.PageLimitDefault
+			return pageLimit
 		}()
 		if param.Limit <= 0 {
 			break
@@ -1051,7 +1064,7 @@ func (q *Query) findStreamByIDV2(ctx context.Context, recordType reflect.Type, h
 			}
 		}
 
-		if perRecords.Elem().Len() < constants.PageLimitDefault {
+		if perRecords.Elem().Len() < int(pageLimit) {
 			break
 		}
 	}

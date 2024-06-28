@@ -42,6 +42,9 @@ type IObject interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) (err error)
 	// FindStream 流式查询
+	// 注：
+	//   如果未设置排序字段，默认以 _id 增序查询；
+	//   如果有设置排序字段，必须设置具有唯一属性的字段，否则会有数据重复的风险；
 	// @param ctx 上下文
 	// @param recordType 记录数据的类型
 	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
@@ -122,6 +125,9 @@ type IObjectV2 interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
+	// 注：
+	//   如果未设置排序字段，默认以 _id 增序查询；
+	//   如果有设置排序字段，必须设置具有唯一属性的字段，否则会有数据重复的风险；
 	// @param ctx 上下文
 	// @param recordType 记录数据的类型
 	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替

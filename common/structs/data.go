@@ -151,6 +151,7 @@ type FindStreamData struct {
 }
 
 type FindStreamParam struct {
-	IDGetter func(record interface{}) (id int64, err error)
-	Handler  func(ctx context.Context, data *FindStreamData) (err error)
+	IDGetter  func(record interface{}) (id int64, err error)
+	Handler   func(ctx context.Context, data *FindStreamData) (err error)
+	PageLimit int64
 }

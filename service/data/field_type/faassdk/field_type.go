@@ -40,7 +40,7 @@ type Avatar struct {
 	Image   AvatarImages `json:"image"`
 	Color   string       `json:"color"`
 	ColorID string       `json:"color_id"`
-	Content int64        `json:"content"`
+	Content int64        `json:"content"` // todo wby 确认这个字段类型：*interface{}
 }
 
 // RichTextConfig 富文本配置
@@ -64,4 +64,18 @@ type Attachment struct {
 	MimeType string `json:"mime_type"`
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
+}
+
+// AvatarV2 头像 todo wby
+// @example
+// {
+//    "source": "image",
+//    "image": {
+//        "token": "0a4ca526dxxxxxxxxx9457145882",                    // 附件ID， 富文本resource id 或 图片ID
+//        "uri": "/img/198999/da69a4ef2ebxxxxxxxxba397bcc6602_l.jpg", // 图片large信息
+//    }
+//}
+type AvatarV2 struct {
+	Source string       `json:"source"`
+	Image  AvatarImages `json:"image"`
 }

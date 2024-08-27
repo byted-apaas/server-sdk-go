@@ -22,6 +22,14 @@ type IDataV2 interface {
 	Object(objectAPIName string) IObjectV2
 }
 
+//go:generate mockery --name=IDataV3 --structname=DataV3 --filename=DataV3.go
+type IDataV3 interface {
+	Object(objectAPIName string) IObject
+	NewTransaction() ITransaction
+	Oql(oql string, args ...interface{}) IOql
+	ToDataParam(args interface{}) (newArgs interface{})
+}
+
 //go:generate mockery --name=IObject --structname=Object --filename=Object.go
 type IObject interface {
 	Create(ctx context.Context, record interface{}) (id *structs.RecordID, err error)
@@ -37,6 +45,8 @@ type IObject interface {
 	BatchDeleteAsync(ctx context.Context, recordIDs []int64) (taskID int64, err error)
 
 	Count(ctx context.Context) (count int64, err error)
+
+	// 下面的查询接口必须配合 select 使用，目前不支持 SELECT *，当配合 select 使用时实际调用的是 IQuery 中的方法
 	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) (err error)
 	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) (err error)
 	// Deprecated: Use FindStream instead.

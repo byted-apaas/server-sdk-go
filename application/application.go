@@ -25,6 +25,7 @@ var (
 	Event  = eventImpl.NewEvent(nil)
 
 	Data      = dataImpl.NewData(nil)
+	DataV2    = dataImpl.NewDataV3(nil)
 	Metadata  = metadata.NewMetadata(nil)
 	GlobalVar = globalVarImpl.NewGlobalVar(nil)
 	Flow      = flow.NewFlow(nil)

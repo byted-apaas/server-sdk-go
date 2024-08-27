@@ -44,6 +44,10 @@ func (o *Object) Create(ctx context.Context, record interface{}) (*structs.Recor
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).CreateRecordV2(ctx, o.appCtx, o.objectAPIName, record)
 	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
+
 	return request.GetInstance(ctx).CreateRecord(ctx, o.appCtx, o.objectAPIName, record)
 }
 
@@ -56,6 +60,10 @@ func (o *Object) BatchCreate(ctx context.Context, records interface{}) ([]int64,
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchCreateRecordV2(ctx, o.appCtx, o.objectAPIName, records)
 	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
+
 	return request.GetInstance(ctx).BatchCreateRecord(ctx, o.appCtx, o.objectAPIName, records)
 }
 
@@ -65,6 +73,9 @@ func (o *Object) BatchCreateAsync(ctx context.Context, records interface{}) (int
 		return 0, err
 	}
 
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
 	return request.GetInstance(ctx).BatchCreateRecordAsync(ctx, o.appCtx, o.objectAPIName, records)
 }
 
@@ -77,6 +88,9 @@ func (o *Object) Update(ctx context.Context, _id int64, record interface{}) erro
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).UpdateRecordV2(ctx, o.appCtx, o.objectAPIName, _id, record)
 	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
 	return request.GetInstance(ctx).UpdateRecord(ctx, o.appCtx, o.objectAPIName, _id, record)
 }
 
@@ -88,6 +102,9 @@ func (o *Object) BatchUpdate(ctx context.Context, records map[int64]interface{},
 
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchUpdateRecordV2(ctx, o.appCtx, o.objectAPIName, records)
+	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
 	}
 	resp, err := request.GetInstance(ctx).BatchUpdateRecord(ctx, o.appCtx, o.objectAPIName, records)
 	if err != nil {
@@ -105,7 +122,9 @@ func (o *Object) BatchUpdateAsync(ctx context.Context, records map[int64]interfa
 	if err := o.check(); err != nil {
 		return 0, err
 	}
-
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
 	return request.GetInstance(ctx).BatchUpdateRecordAsync(ctx, o.appCtx, o.objectAPIName, records)
 }
 
@@ -118,6 +137,9 @@ func (o *Object) Delete(ctx context.Context, _id int64) error {
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).DeleteRecordV2(ctx, o.appCtx, o.objectAPIName, _id)
 	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
 	return request.GetInstance(ctx).DeleteRecord(ctx, o.appCtx, o.objectAPIName, _id)
 }
 
@@ -129,6 +151,9 @@ func (o *Object) BatchDelete(ctx context.Context, _ids []int64, result ...interf
 
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchDeleteRecordV2(ctx, o.appCtx, o.objectAPIName, _ids)
+	}
+	if o.appCtx.IsDataV3() {
+		// todo wby
 	}
 	resp, err := request.GetInstance(ctx).BatchDeleteRecord(ctx, o.appCtx, o.objectAPIName, _ids)
 	if err != nil {
@@ -146,7 +171,9 @@ func (o *Object) BatchDeleteAsync(ctx context.Context, _ids []int64) (int64, err
 	if err := o.check(); err != nil {
 		return 0, err
 	}
-
+	if o.appCtx.IsDataV3() {
+		// todo wby
+	}
 	return request.GetInstance(ctx).BatchDeleteRecordAsync(ctx, o.appCtx, o.objectAPIName, _ids)
 }
 

@@ -1,3 +1,4 @@
+// nolint: cyclo_complexity
 // Copyright 2022 ByteDance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
@@ -125,6 +126,10 @@ func (q *Query) Find(ctx context.Context, records interface{}, unauthFields ...i
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
+	if q.appCtx.IsDataV3() {
+		//todo wby
+		fmt.Printf("wby test data v3\n")
+	}
 
 	if q.err != nil {
 		return q.err

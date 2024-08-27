@@ -9,9 +9,10 @@ import (
 )
 
 type AppCtx struct {
-	Mode       AppMode
-	Env        constants.PlatformEnvType
-	Credential *cHttp.AppCredential
+	Mode        AppMode
+	Env         constants.PlatformEnvType
+	Credential  *cHttp.AppCredential
+	DataVersion DataVersion // data 版本
 }
 
 func (a *AppCtx) IsOpenSDK() bool {
@@ -28,9 +29,21 @@ func (a *AppCtx) GetEnv() constants.PlatformEnvType {
 	return constants.PlatformEnvOnline
 }
 
+func (a *AppCtx) IsDataV3() bool {
+	return a.DataVersion == DataVersionV3
+}
+
 type AppMode int
 
 const (
 	AppModeOpenSDK AppMode = iota + 1
 	AppModeFaaSSDK
+)
+
+type DataVersion string
+
+const (
+	DataVersionV1 = "v1"
+	DataVersionV2 = "v2"
+	DataVersionV3 = "v3"
 )

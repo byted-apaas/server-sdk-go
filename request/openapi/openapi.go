@@ -328,6 +328,8 @@ func (r *RequestHttp) getRecordsV3Request(ctx context.Context, appCtx *structs.A
 	if param.PageSize <= 0 {
 		param.PageSize = constants.PageLimitDefault
 	}
+	authFieldType := structs.ProcessAuthFieldType_SliceResult
+	param.ProcessAuthFieldType = &authFieldType
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
@@ -376,7 +378,7 @@ func (r *RequestHttp) getSingleRecordV3Request(ctx context.Context, appCtx *stru
 
 	param := &structs.GetSingleRecordReqParamV3{
 		Select:      fields,
-		DataVersion: "v3",
+		DataVersion: structs.DataVersionV3,
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -495,6 +497,27 @@ func (r *RequestHttp) GetRecordCountV2(ctx context.Context, appCtx *structs.AppC
 	return gjson.GetBytes(data, "total").Int(), nil
 }
 
+func (r *RequestHttp) GetRecordCountV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV3) (int64, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetRecordsV3)
+
+	if param == nil {
+		param = &structs.GetRecordsReqParamV3{}
+	}
+
+	param.PageSize = 1
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return 0, err
+	}
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchGetRecordsV3(namespace, objectAPIName), nil, param, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return 0, err
+	}
+
+	return gjson.GetBytes(data, "total").Int(), nil
+}
+
 func (r *RequestHttp) CreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error) {
 	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.CreateRecord)
@@ -550,7 +573,7 @@ func (r *RequestHttp) CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx
 
 	body := map[string]interface{}{
 		"record":       newRecord,
-		"data_version": "v3",
+		"data_version": structs.DataVersionV3,
 	}
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -638,7 +661,7 @@ func (r *RequestHttp) BatchCreateRecordV3(ctx context.Context, appCtx *structs.A
 
 	body := map[string]interface{}{
 		"records":      newRecords,
-		"data_version": "v3",
+		"data_version": structs.DataVersionV3,
 	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchCreateRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
@@ -722,12 +745,17 @@ func (r *RequestHttp) UpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx
 	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.UpdateRecordV3)
 
+	body := map[string]interface{}{
+		"record":       newRecord,
+		"data_version": structs.DataVersionV3,
+	}
+
 	namespace, err := utils.GetNamespace(ctx, appCtx)
 	if err != nil {
 		return err
 	}
 
-	_, err = cUtils.ErrorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV3(namespace, objectAPIName, recordID), nil, newRecord, cHttp.AppTokenMiddleware))
+	_, err = cUtils.ErrorWrapper(getOpenapiClient().PatchJson(ctx, GetPathUpdateRecordV3(namespace, objectAPIName, recordID), nil, body, cHttp.AppTokenMiddleware))
 	return err
 }
 

@@ -6,6 +6,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -48,7 +49,17 @@ func (q *Query) Count(ctx context.Context) (int64, error) {
 		return 0, q.err
 	}
 
-	if q.appCtx.IsOpenSDK() {
+	if q.appCtx.IsDataV3() {
+		param := &structs.GetRecordsReqParamV3{
+			PageSize:       1,
+			Offset:         q.offset,
+			Select:         q.fields,
+			OrderBy:        q.order,
+			NeedTotalCount: true,
+			DataVersion:    structs.DataVersionV3,
+		}
+		return request.GetInstance(ctx).GetRecordCountV3(ctx, q.appCtx, q.objectAPIName, param)
+	} else if q.appCtx.IsOpenSDK() {
 		param := &structs.GetRecordsReqParamV2{
 			Limit:  1,
 			Offset: q.offset,
@@ -118,6 +129,9 @@ func (q *Query) FindAll(ctx context.Context, records interface{}) error {
 	if q.appCtx.IsOpenSDK() {
 		return q.findAllV2(ctx, records)
 	}
+	if q.appCtx.IsDataV3() {
+		return errors.New("dataV3 does not support FindAll, please use findStream")
+	}
 	return q.findAll(ctx, records)
 }
 
@@ -132,32 +146,7 @@ func (q *Query) Find(ctx context.Context, records interface{}, unauthFields ...i
 	}
 
 	if q.appCtx.IsDataV3() {
-		fmt.Printf("wby test data v3\n")
-		var criterion *cond2.Criterion
-		criterion, err = q.buildCriterion(ctx, q.filter)
-		if err != nil {
-			return err
-		}
-
-		var criterionV3 *cond2.CriterionV3
-		if criterion != nil {
-			criterionV3, err = criterion.ToCriterionV3()
-			if err != nil {
-				return err
-			}
-		}
-
-		param := &structs.GetRecordsReqParamV3{
-			PageSize:       q.limit,
-			Offset:         q.offset,
-			Select:         q.fields,
-			OrderBy:        q.order,
-			NeedTotalCount: false,
-			Filter:         criterionV3,
-			//Fuzzy:          q.fuzzySearch,
-			DataVersion: "v3",
-		}
-		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, records)
+		unauthFieldResult, err = q.findV3(ctx, records)
 	} else if q.appCtx.IsOpenSDK() {
 		// OpenSDK 走新接口，因为新接口有权限控制
 		param := &structs.GetRecordsReqParamV2{
@@ -213,9 +202,10 @@ func (q *Query) FindOne(ctx context.Context, record interface{}, unauthFields ..
 		records           []interface{}
 		unauthFieldResult [][]string
 	)
-
-	// OpenSDK 走新接口，因为新接口有权限控制
-	if q.appCtx.IsOpenSDK() {
+	if q.appCtx.IsDataV3() {
+		unauthFieldResult, err = q.findV3(ctx, records)
+	} else if q.appCtx.IsOpenSDK() {
+		// OpenSDK 走新接口，因为新接口有权限控制
 		param := &structs.GetRecordsReqParamV2{
 			Limit:  1,
 			Offset: q.offset,
@@ -278,6 +268,37 @@ func (q *Query) FindOne(ctx context.Context, record interface{}, unauthFields ..
 		return utils.ParseUnauthFields(unauthFieldResult, unauthFields[0])
 	}
 	return nil
+}
+
+func (q *Query) findV3(ctx context.Context, records interface{}) (unauthFieldResult [][]string, err error) {
+	fmt.Printf("wby test data v3\n")
+
+	var criterion *cond2.Criterion
+	criterion, err = q.buildCriterion(ctx, q.filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var criterionV3 *cond2.CriterionV3
+	if criterion != nil {
+		criterionV3, err = criterion.ToCriterionV3()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	param := &structs.GetRecordsReqParamV3{
+		PageSize:       q.limit,
+		Offset:         q.offset,
+		Select:         q.fields,
+		OrderBy:        q.order,
+		NeedTotalCount: false,
+		Filter:         criterionV3,
+		//Fuzzy:          q.fuzzySearch, // todo wby
+		DataVersion: structs.DataVersionV3,
+	}
+	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, records)
+	return unauthFieldResult, err
 }
 
 func newQuery(s *structs.AppCtx, objectAPIName string, authType *string, err error) *Query {
@@ -827,7 +848,17 @@ func (q *Query) findStreamByLimitOffset(ctx context.Context, recordType reflect.
 
 		var perRecords = reflect.New(reflectResults.Type())
 		var unauthFieldResult [][]string
-		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if q.appCtx.IsDataV3() {
+			// 将 v1 的数据转成 v3 的
+			var paramV3 *structs.GetRecordsReqParamV3
+			paramV3, err = param.TransferToDataV3()
+			if err != nil {
+				return err
+			}
+			unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, paramV3, perRecords.Interface())
+		} else {
+			unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		}
 		if err != nil {
 			return err
 		}
@@ -911,7 +942,17 @@ func (q *Query) findStreamByID(ctx context.Context, recordType reflect.Type, han
 
 		var perRecords = reflect.New(reflectResults.Type())
 		var unauthFieldResult [][]string
-		unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		if q.appCtx.IsDataV3() {
+			// 将数据转成 v3
+			var paramV3 *structs.GetRecordsReqParamV3
+			paramV3, err = param.TransferToDataV3()
+			if err != nil {
+				return err
+			}
+			unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, paramV3, perRecords.Interface())
+		} else {
+			unauthFieldResult, err = request.GetInstance(ctx).GetRecords(ctx, q.appCtx, q.objectAPIName, param, perRecords.Interface())
+		}
 		if err != nil {
 			return err
 		}

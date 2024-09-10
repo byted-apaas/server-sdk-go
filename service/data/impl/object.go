@@ -89,7 +89,7 @@ func (o *Object) Update(ctx context.Context, _id int64, record interface{}) erro
 		return request.GetInstance(ctx).UpdateRecordV2(ctx, o.appCtx, o.objectAPIName, _id, record)
 	}
 	if o.appCtx.IsDataV3() {
-		// todo wby
+		return request.GetInstance(ctx).UpdateRecordV3(ctx, o.appCtx, o.objectAPIName, _id, record)
 	}
 	return request.GetInstance(ctx).UpdateRecord(ctx, o.appCtx, o.objectAPIName, _id, record)
 }
@@ -138,7 +138,7 @@ func (o *Object) Delete(ctx context.Context, _id int64) error {
 		return request.GetInstance(ctx).DeleteRecordV2(ctx, o.appCtx, o.objectAPIName, _id)
 	}
 	if o.appCtx.IsDataV3() {
-		// todo wby
+		return request.GetInstance(ctx).DeleteRecordV3(ctx, o.appCtx, o.objectAPIName, _id)
 	}
 	return request.GetInstance(ctx).DeleteRecord(ctx, o.appCtx, o.objectAPIName, _id)
 }

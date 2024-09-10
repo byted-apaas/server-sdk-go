@@ -23,13 +23,6 @@ type PhoneNumber struct {
 	Number string `json:"number"`
 }
 
-// PhoneNumberV2 DataV3 协议
-type PhoneNumberV2 struct {
-	RegionCode  string `json:"region_code"`
-	DialingCode string `json:"dialing_code"`
-	Number      string `json:"number"`
-}
-
 // Region 行政区划
 type Region struct {
 	ID         int64        `json:"id"`
@@ -37,12 +30,6 @@ type Region struct {
 	Level      int          `json:"level"`
 	RegionCode string       `json:"regionCode"`
 	FullPath   Multilingual `json:"fullPath"`
-}
-
-type RegionV2 struct {
-	ID         string       `json:"_id"`
-	RegionCode string       `json:"region_code"`
-	FullPath   Multilingual `json:"full_path"`
 }
 
 type AvatarImages map[string]string
@@ -79,7 +66,7 @@ type Attachment struct {
 	Size     int64  `json:"size"`
 }
 
-// AvatarV2 头像（datav3 协议）
+// AvatarV3 头像（datav3 协议）
 // @example
 // {
 //    "source": "image",
@@ -88,24 +75,42 @@ type Attachment struct {
 //        "uri": "/img/198999/da69a4ef2ebxxxxxxxxba397bcc6602_l.jpg", // 图片large信息
 //    }
 //}
-type AvatarV2 struct {
-	Source  string       `json:"source"`
-	Image   AttachmentV2 `json:"image"`
-	Color   string       `json:"color"`
-	Content int64        `json:"content"`
+type AvatarV3 struct {
+	Source  string             `json:"source"`
+	Image   *AttachmentModelV3 `json:"image,omitempty"`
+	Color   *string            `json:"color,omitempty"`
+	Content interface{}        `json:"content,omitempty"` // int
 }
 
-// AttachmentV2 文件（datav3 协议）
-type AttachmentV2 struct {
-	MimeType string `json:"mime_type"`
-	Name     string `json:"name"`
-	Size     int64  `json:"size"`
+// AttachmentModelV3 文件（datav3 协议）
+type AttachmentModelV3 struct {
 	Token    string `json:"token"`
-	URI      string `json:"uri"`
+	MimeType string `json:"mime_type,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Size     string `json:"size,omitempty"`
+	URI      string `json:"uri,omitempty"`
 }
 
-// RichTextV2 富文本（datav3 协议）
-type RichTextV2 struct {
-	Raw    string       `json:"raw"`
-	Config AttachmentV2 `json:"config"`
+// RichTextV3 富文本（datav3 协议）
+type RichTextV3 struct {
+	Raw    string             `json:"raw"`
+	Config *AttachmentModelV3 `json:"config,omitempty"`
+}
+
+// PhoneNumberV3 DataV3 协议
+type PhoneNumberV3 struct {
+	RegionCode  string `json:"region_code"`
+	DialingCode string `json:"dialing_code"`
+	Number      string `json:"number"`
+}
+
+type RegionV3 struct {
+	ID         string         `json:"_id"`
+	RegionCode string         `json:"region_code"`
+	FullPath   MultilingualV3 `json:"full_path"`
+}
+
+type MultilingualV3 struct {
+	En string `json:"en_US,omitempty"`
+	Zh string `json:"zh_CN,omitempty"`
 }

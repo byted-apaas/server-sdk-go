@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"reflect"
+
 	"github.com/byted-apaas/server-sdk-go/application/operator"
+	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/mitchellh/mapstructure"
 
 	cUtils "github.com/byted-apaas/server-common-go/utils"
@@ -10,14 +15,16 @@ import (
 )
 
 func find() {
+	application.GetLogger(ctx).Infof("=============== find ==================")
 	var record1 []TestObjectV2
 	err := application.DataV2.Object("objectForAll").
 		Offset(0).Limit(10).
-		//Select(AllFieldAPINames...).
-		Select("phone", "option", "email").
+		Select(AllFieldAPINames...).
+		//Select("_id", "phone", "option", "email").
 		Find(ctx, &record1)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("err: %v", err)
+		return
 	}
 	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
 }
@@ -70,7 +77,41 @@ func findOne() {
 }
 
 func findStream() {
+	application.GetLogger(ctx).Infof(" ============ findstream =============")
+	err := application.DataV2.Object("objectForAll").
+		Select(AllFieldAPINames...).
+		FindStream(ctx, reflect.TypeOf(&TestObjectV2{}), nil, structs.FindStreamParam{
+			Handler: func(ctx context.Context, data *structs.FindStreamData) (err error) {
+				var rs []*TestObjectV2
+				for i := 0; i < reflect.ValueOf(data.Records).Elem().Len(); i++ {
+					o, ok := reflect.ValueOf(data.Records).Elem().Index(i).Interface().(TestObjectV2)
+					if !ok {
+						panic(fmt.Sprintf("should be AllFieldObject, but %T", reflect.ValueOf(data.Records).Elem().Index(i).Interface()))
+					}
+					rs = append(rs, &o)
+				}
 
+				application.GetLogger(ctx).Infof("count: %d", len(rs))
+				application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(rs[0]))
+				return nil
+			},
+			PageLimit: 20,
+		})
+	if err != nil {
+		application.GetLogger(ctx).Errorf("findstream failed: %+v", err)
+		return
+	}
+
+}
+
+func getCount() {
+	application.GetLogger(ctx).Infof(" ============ count =============")
+	count, err := application.DataV2.Object("objectForAll").Select(AllFieldAPINames...).Count(ctx)
+	if err != nil {
+		application.GetLogger(ctx).Infof("err: %+v", err)
+		return
+	}
+	application.GetLogger(ctx).Infof("count: %d", count)
 }
 
 // Record 类型转换

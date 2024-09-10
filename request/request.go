@@ -23,6 +23,7 @@ type IRequestOpenapi interface {
 	GetSingleRecordsV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, fields []string, record interface{}) ([][]string, error)
 	GetRecordCount(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam) (int64, error)
 	GetRecordCountV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV2) (int64, error)
+	GetRecordCountV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV3) (int64, error)
 
 	CreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error)
 	CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error)

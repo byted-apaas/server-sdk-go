@@ -490,12 +490,12 @@ type RegionFilter struct {
 	Precondition interface{} `json:"precondition"` // 页面无配置入口
 }
 
-type LookupV2 struct {
+type LookupV3 struct {
 	ID   string       `json:"_id"`
 	Name Multilingual `json:"_name"`
 }
 
-type OptionV2 struct {
+type OptionV3 struct {
 	APIName string       `json:"api_name"`
 	Color   string       `json:"color"`
 	Label   Multilingual `json:"label"`

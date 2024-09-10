@@ -4,9 +4,11 @@
 package structs
 
 import (
-	"github.com/byted-apaas/server-sdk-go/common/constants"
-	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 	"context"
+
+	"github.com/byted-apaas/server-sdk-go/common/constants"
+	cond2 "github.com/byted-apaas/server-sdk-go/service/data/cond"
+	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 )
 
 type RecordID struct {
@@ -38,6 +40,31 @@ type GetRecordsReqParam struct {
 	NeedFilterUserPermission bool                  `json:"need_filter_user_permission"`
 	FuzzySearch              *FuzzySearch          `json:"fuzzySearch"`
 	ProcessAuthFieldType     *ProcessAuthFieldType `json:"process_auth_field_type"`
+}
+
+func (p *GetRecordsReqParam) TransferToDataV3() (*GetRecordsReqParamV3, error) {
+	var err error
+	param := &GetRecordsReqParamV3{
+		PageSize:       p.Limit,
+		Offset:         p.Offset,
+		Select:         p.FieldApiNames,
+		OrderBy:        p.Order,
+		NeedTotalCount: false,
+		//Fuzzy:          q.fuzzySearch, // todo wby
+		DataVersion: DataVersionV3,
+	}
+
+	var criterionV3 *cond2.CriterionV3
+	criterionV1, ok := p.Criterion.(*cond2.Criterion)
+	if ok {
+		criterionV3, err = criterionV1.ToCriterionV3()
+		if err != nil {
+			return nil, err
+		}
+	}
+	param.Filter = criterionV3
+
+	return param, nil
 }
 
 type ProcessAuthFieldType int64

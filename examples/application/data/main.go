@@ -37,16 +37,18 @@ func init() {
 func main() {
 	application.GetLogger(ctx).Infof("logid: %s", utils.GetLogIDFromCtx(ctx))
 
-	delID, updateID := createRecord()
-	deleteRecord(delID)
-	update(updateID)
-	//update2(updateID)
-	update3(updateID)
+	//delID, updateID := createRecord()
+	//deleteRecord(delID)
+	//update(updateID)
+	////update2(updateID)
+	//update3(updateID)
+	//
+	//find()
+	//findWithFilter()
+	//findStream()
+	//getCount()
 
-	find()
-	findWithFilter()
-	findStream()
-	getCount()
+	batchDelete()
 
 	//oql()
 }

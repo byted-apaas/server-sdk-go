@@ -178,3 +178,27 @@ func ParseBatchResult(resp *structs.BatchResult, result interface{}) error {
 	}
 	return nil
 }
+
+func ParseBatchResultV3(resp *structs.BatchResultV3, result interface{}) error {
+	if resp == nil {
+		return nil
+	}
+
+	switch result.(type) {
+	case *structs.BatchResultV3:
+		reflect.ValueOf(result).Elem().Set(reflect.ValueOf(*resp))
+	case **structs.BatchResultV3:
+		reflect.ValueOf(result).Elem().Elem().Set(reflect.ValueOf(*resp))
+	default:
+		return cExceptions.InvalidParamError("the type of result should be *structs.BatchResult or **structs.BatchResult, but %T", result)
+	}
+	return nil
+}
+
+func Int64SliceToStringSlice(ids []int64) []string {
+	converted := make([]string, len(ids))
+	for i, v := range ids {
+		converted[i] = strconv.FormatInt(v, 10)
+	}
+	return converted
+}

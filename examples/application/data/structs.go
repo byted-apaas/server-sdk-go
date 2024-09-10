@@ -8,7 +8,7 @@ import (
 
 type TestCreateObjectV2 struct {
 	// 创建得传 int64 不然会报错。。。或者不传也可以
-	//ID             int64                        `json:"_id"`
+	ID             int64                        `json:"_id"`
 	Text           string                       `json:"text"`         // 文本
 	BigintType     string                       `json:"bigintType"`   // 整数
 	Number         float64                      `json:"number"`       // 浮点数

@@ -53,3 +53,15 @@ func ConvertStdRecordsFromMap(records map[int64]interface{}) map[int64]interface
 	}
 	return newRecords
 }
+
+func ConvertStdRecordsFromMapV3(records map[string]interface{}) map[string]interface{} {
+	if records == nil || len(records) == 0 {
+		return nil
+	}
+
+	newRecords := map[string]interface{}{}
+	for key, record := range records {
+		newRecords[key] = ConvertStdRecord(record)
+	}
+	return newRecords
+}

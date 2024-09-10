@@ -12,7 +12,7 @@ type DataV3 struct {
 	appCtx *structs.AppCtx
 }
 
-func NewDataV3(s *structs.AppCtx) data.IData {
+func NewDataV3(s *structs.AppCtx) data.IDataV3 {
 	if s == nil {
 		s = &structs.AppCtx{}
 	}
@@ -20,8 +20,8 @@ func NewDataV3(s *structs.AppCtx) data.IData {
 	return &DataV3{appCtx: s}
 }
 
-func (d *DataV3) Object(objectAPIName string) data.IObject {
-	return NewObject(d.appCtx, objectAPIName)
+func (d *DataV3) Object(objectAPIName string) data.IObjectV3 {
+	return NewObjectV3(d.appCtx, objectAPIName)
 }
 
 func (d *DataV3) NewTransaction() data.ITransaction {

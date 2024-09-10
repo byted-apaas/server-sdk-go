@@ -567,7 +567,7 @@ func (r *RequestHttp) CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 	return &structs.RecordID{ID: id}, nil
 }
 
-func (r *RequestHttp) CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error) {
+func (r *RequestHttp) CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordIDV3, error) {
 	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.CreateRecordV3)
 
@@ -586,11 +586,11 @@ func (r *RequestHttp) CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx
 		return nil, err
 	}
 
-	id := gjson.GetBytes(data, "_id").Int()
-	if id == 0 {
+	id := gjson.GetBytes(data, "_id").String()
+	if id == "" {
 		return nil, cExceptions.InternalError("id is empty, data: %s", string(data))
 	}
-	return &structs.RecordID{ID: id}, nil
+	return &structs.RecordIDV3{ID: id}, nil
 }
 
 func (r *RequestHttp) BatchCreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error) {
@@ -650,7 +650,7 @@ func (r *RequestHttp) BatchCreateRecordV2(ctx context.Context, appCtx *structs.A
 	return result.RecordIDs, nil
 }
 
-func (r *RequestHttp) BatchCreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error) {
+func (r *RequestHttp) BatchCreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]string, error) {
 	newRecords := std_record.ConvertStdRecords(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchCreateRecordV3)
 
@@ -669,7 +669,7 @@ func (r *RequestHttp) BatchCreateRecordV3(ctx context.Context, appCtx *structs.A
 		return nil, err
 	}
 
-	result := structs.BatchCreateRecord{}
+	result := structs.BatchCreateRecordV3{}
 	err = cUtils.JsonUnmarshalBytes(data, &result)
 	if err != nil {
 		return nil, cExceptions.InternalError("BatchCreateRecordV3 failed, err: %v", err)
@@ -741,7 +741,7 @@ func (r *RequestHttp) UpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx
 	return err
 }
 
-func (r *RequestHttp) UpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error {
+func (r *RequestHttp) UpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID string, record interface{}) error {
 	newRecord := std_record.ConvertStdRecord(record)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.UpdateRecordV3)
 
@@ -821,6 +821,35 @@ func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.A
 	return err
 }
 
+func (r *RequestHttp) BatchUpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[string]interface{}) (*structs.BatchResultV3, error) {
+	newRecords := std_record.ConvertStdRecordsFromMapV3(records)
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecordV3)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]interface{}{
+		"record":       newRecords,
+		"data_version": structs.DataVersionV3,
+	}
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	// todo wby 待确认批量更新的 response
+	resp := struct {
+		ErrMap map[string]string `json:"err_map"`
+	}{}
+	err = cUtils.JsonUnmarshalBytes(data, &resp)
+	if err != nil {
+		return nil, cExceptions.InternalError("BatchUpdateRecord failed, err: %v", err)
+	}
+	return reqCommon.GenBatchResultByRecordsV3(records, resp.ErrMap), nil
+}
+
 func (r *RequestHttp) BatchUpdateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) (int64, error) {
 	newRecords := std_record.ConvertStdRecordsFromMap(records)
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecordAsync)
@@ -878,7 +907,7 @@ func (r *RequestHttp) DeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx
 	return err
 }
 
-func (r *RequestHttp) DeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64) error {
+func (r *RequestHttp) DeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID string) error {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.DeleteRecordV3)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -933,6 +962,34 @@ func (r *RequestHttp) BatchDeleteRecordV2(ctx context.Context, appCtx *structs.A
 	}
 	_, err = cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordV2(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	return err
+}
+
+func (r *RequestHttp) BatchDeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []string) (*structs.BatchResultV3, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchDeleteRecordV3)
+
+	namespace, err := utils.GetNamespace(ctx, appCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]interface{}{
+		"ids": recordIDs,
+	}
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	if err != nil {
+		return nil, err
+	}
+
+	// todo wby 待确认 response
+	resp := struct {
+		ErrMap map[string]string `json:"err_map"`
+	}{}
+	err = cUtils.JsonUnmarshalBytes(data, &resp)
+	if err != nil {
+		return nil, cExceptions.InternalError("BatchUpdateRecord failed, err: %v", err)
+	}
+
+	return reqCommon.GenBatchResultByRecordIDsV3(recordIDs, resp.ErrMap), nil
 }
 
 func (r *RequestHttp) BatchDeleteRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) (int64, error) {

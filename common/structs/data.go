@@ -15,6 +15,10 @@ type RecordID struct {
 	ID int64 `json:"_id"`
 }
 
+type RecordIDV3 struct {
+	ID string `json:"_id"`
+}
+
 type TransactionRecordID struct {
 	ID interface{} `json:"_id"`
 }
@@ -111,6 +115,10 @@ type BatchCreateRecord struct {
 	RecordIDs []int64 `json:"record_ids"`
 }
 
+type BatchCreateRecordV3 struct {
+	RecordIDs []string `json:"record_ids"`
+}
+
 type BatchCreateRecordV2 struct {
 	RecordIDs []int64 `json:"_ids"`
 }
@@ -202,4 +210,29 @@ type FindStreamParam struct {
 	IDGetter  func(record interface{}) (id int64, err error)
 	Handler   func(ctx context.Context, data *FindStreamData) (err error)
 	PageLimit int64
+}
+
+type BatchResultV3 struct {
+	Code string              `json:"code"`
+	Msg  string              `json:"msg"`
+	Data []BatchResultDataV3 `json:"data"`
+}
+
+func (b *BatchResultV3) HasError() bool {
+	if b == nil {
+		return false
+	}
+
+	for _, d := range b.Data {
+		if !d.Success {
+			return true
+		}
+	}
+	return false
+}
+
+type BatchResultDataV3 struct {
+	Success bool                   `json:"success"`
+	ID      string                 `json:"_id"`
+	Errors  []BatchResultDataError `json:"errors"`
 }

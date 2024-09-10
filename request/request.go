@@ -27,24 +27,26 @@ type IRequestOpenapi interface {
 
 	CreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error)
 	CreateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error)
-	CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordID, error)
+	CreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, record interface{}) (*structs.RecordIDV3, error)
 	BatchCreateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error)
 	BatchCreateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error)
-	BatchCreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]int64, error)
+	BatchCreateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) ([]string, error)
 	BatchCreateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) (int64, error)
 
 	UpdateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error
 	UpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error
-	UpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64, record interface{}) error
+	UpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID string, record interface{}) error
 	BatchUpdateRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) (*structs.BatchResult, error)
 	BatchUpdateRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) error
+	BatchUpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[string]interface{}) (*structs.BatchResultV3, error)
 	BatchUpdateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[int64]interface{}) (int64, error)
 
 	DeleteRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64) error
 	DeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64) error
-	DeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID int64) error
+	DeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordID string) error
 	BatchDeleteRecord(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) (*structs.BatchResult, error)
 	BatchDeleteRecordV2(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) error
+	BatchDeleteRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []string) (*structs.BatchResultV3, error)
 	BatchDeleteRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) (int64, error)
 
 	Oql(ctx context.Context, appCtx *structs.AppCtx, oql string, args interface{}, namedArgs map[string]interface{}, resultSet interface{}) (unauthFields [][]string, err error)

@@ -76,7 +76,7 @@ var (
 	}
 )
 
-func update(id int64) {
+func update(id string) {
 	application.GetLogger(ctx).Infof("=========== update %d ==============", id)
 	//updateRecord := TestObjectV2{Text: "update", ID: id} // 这里不用这样用，如果要用结构体需要定义更新的结构，不能用完整的结构
 	updateRecord := map[string]interface{}{
@@ -90,7 +90,7 @@ func update(id int64) {
 	application.GetLogger(ctx).Infof("update record success, id: %+v", id)
 }
 
-func update2(id int64) {
+func update2(id string) {
 	application.GetLogger(ctx).Infof("=========== update2 %d ==============", id)
 	err := application.DataV2.Object("objectForAll").Update(ctx, id, updateRecordInterface)
 	if err != nil {
@@ -100,7 +100,7 @@ func update2(id int64) {
 	application.GetLogger(ctx).Infof("update2 record success, id: %+v", id)
 }
 
-func update3(id int64) {
+func update3(id string) {
 	application.GetLogger(ctx).Infof("=========== update3 %d ==============", id)
 
 	err := application.DataV2.Object("objectForAll").Update(ctx, id, updateRecordStruct)
@@ -109,5 +109,4 @@ func update3(id int64) {
 		return
 	}
 	application.GetLogger(ctx).Infof("update2 record success, id: %+v", id)
-
 }

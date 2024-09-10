@@ -116,11 +116,11 @@ func GetPathUpdateRecordV2(namespace, objectAPIName string, recordID int64) stri
 	return cUtils.NewPathReplace(PathUpdateRecordV2).Namespace(namespace).ObjectAPIName(objectAPIName).RecordID(recordID).Path()
 }
 
-func GetPathUpdateRecordV3(namespace, objectAPIName string, recordID int64) string {
-	return cUtils.NewPathReplace(PathUpdateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordID(recordID).Path()
+func GetPathUpdateRecordV3(namespace, objectAPIName string, recordID string) string {
+	return cUtils.NewPathReplace(PathUpdateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordIDStr(recordID).Path()
 }
 
-func GetPathBatchUpdateRecordV3(namespace, objectAPIName string, recordID int64) string {
+func GetPathBatchUpdateRecordV3(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathBatchUpdateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
@@ -136,11 +136,11 @@ func GetPathBatchDeleteRecordV2(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathBatchDeleteRecordV2).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
-func GetPathDeleteRecordV3(namespace, objectAPIName string, recordID int64) string {
-	return cUtils.NewPathReplace(PathDeleteRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordID(recordID).Path()
+func GetPathDeleteRecordV3(namespace, objectAPIName string, recordID string) string {
+	return cUtils.NewPathReplace(PathDeleteRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordIDStr(recordID).Path()
 }
 
-func GetPathBatchDeleteRecordV3(namespace, objectAPIName string, recordID int64) string {
+func GetPathBatchDeleteRecordV3(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathBatchDeleteRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 

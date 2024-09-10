@@ -80,3 +80,32 @@ func GenBatchResultData(id int64, errMap map[int64]string) structs.BatchResultDa
 	}
 	return d
 }
+
+func GenBatchResultByRecordsV3(records map[string]interface{}, errMap map[string]string) *structs.BatchResultV3 {
+	result := &structs.BatchResultV3{Code: "", Msg: "success"}
+	for id := range records {
+		result.Data = append(result.Data, GenBatchResultDataV3(id, errMap))
+	}
+	return result
+}
+
+func GenBatchResultByRecordIDsV3(recordIDs []string, errMap map[string]string) *structs.BatchResultV3 {
+	result := &structs.BatchResultV3{Code: "", Msg: "success"}
+	for _, id := range recordIDs {
+		result.Data = append(result.Data, GenBatchResultDataV3(id, errMap))
+	}
+	return result
+}
+
+func GenBatchResultDataV3(id string, errMap map[string]string) structs.BatchResultDataV3 {
+	d := structs.BatchResultDataV3{ID: id, Success: true}
+	if errCode, ok := errMap[id]; ok {
+		d.Success = false
+		d.Errors = []structs.BatchResultDataError{
+			{
+				Code: errCode,
+			},
+		}
+	}
+	return d
+}

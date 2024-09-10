@@ -23,6 +23,13 @@ type PhoneNumber struct {
 	Number string `json:"number"`
 }
 
+// PhoneNumberV2 DataV3 协议
+type PhoneNumberV2 struct {
+	RegionCode  string `json:"region_code"`
+	DialingCode string `json:"dialing_code"`
+	Number      string `json:"number"`
+}
+
 // Region 行政区划
 type Region struct {
 	ID         int64        `json:"id"`
@@ -30,6 +37,12 @@ type Region struct {
 	Level      int          `json:"level"`
 	RegionCode string       `json:"regionCode"`
 	FullPath   Multilingual `json:"fullPath"`
+}
+
+type RegionV2 struct {
+	ID         string       `json:"_id"`
+	RegionCode string       `json:"region_code"`
+	FullPath   Multilingual `json:"full_path"`
 }
 
 type AvatarImages map[string]string
@@ -40,7 +53,7 @@ type Avatar struct {
 	Image   AvatarImages `json:"image"`
 	Color   string       `json:"color"`
 	ColorID string       `json:"color_id"`
-	Content int64        `json:"content"` // todo wby 确认这个字段类型：*interface{}
+	Content interface{}  `json:"content"`
 }
 
 // RichTextConfig 富文本配置
@@ -66,7 +79,7 @@ type Attachment struct {
 	Size     int64  `json:"size"`
 }
 
-// AvatarV2 头像 todo wby
+// AvatarV2 头像（datav3 协议）
 // @example
 // {
 //    "source": "image",
@@ -76,6 +89,23 @@ type Attachment struct {
 //    }
 //}
 type AvatarV2 struct {
-	Source string       `json:"source"`
-	Image  AvatarImages `json:"image"`
+	Source  string       `json:"source"`
+	Image   AttachmentV2 `json:"image"`
+	Color   string       `json:"color"`
+	Content int64        `json:"content"`
+}
+
+// AttachmentV2 文件（datav3 协议）
+type AttachmentV2 struct {
+	MimeType string `json:"mime_type"`
+	Name     string `json:"name"`
+	Size     int64  `json:"size"`
+	Token    string `json:"token"`
+	URI      string `json:"uri"`
+}
+
+// RichTextV2 富文本（datav3 协议）
+type RichTextV2 struct {
+	Raw    string       `json:"raw"`
+	Config AttachmentV2 `json:"config"`
 }

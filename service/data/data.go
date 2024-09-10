@@ -22,14 +22,6 @@ type IDataV2 interface {
 	Object(objectAPIName string) IObjectV2
 }
 
-//go:generate mockery --name=IDataV3 --structname=DataV3 --filename=DataV3.go
-type IDataV3 interface {
-	Object(objectAPIName string) IObject
-	NewTransaction() ITransaction
-	Oql(oql string, args ...interface{}) IOql
-	ToDataParam(args interface{}) (newArgs interface{})
-}
-
 //go:generate mockery --name=IObject --structname=Object --filename=Object.go
 type IObject interface {
 	Create(ctx context.Context, record interface{}) (id *structs.RecordID, err error)

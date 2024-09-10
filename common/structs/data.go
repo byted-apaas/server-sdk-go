@@ -59,6 +59,27 @@ type GetRecordsReqParamV2 struct {
 	Count       *bool         `json:"count"`
 }
 
+type GetRecordsReqParamV3 struct {
+	PageSize             int64                 `json:"page_size"` // 是期望服务端返回的条目个数，不填则取默认值，默认值为 500， 对应 v2 的 limit
+	Offset               int64                 `json:"offset"`    // 偏移量，从 0 开始
+	Select               []string              `json:"select"`    // 筛选的字段列表
+	Filter               interface{}           `json:"filter"`    // Criterion
+	OrderBy              []*Order              `json:"order_by"`
+	ProcessAuthFieldType *ProcessAuthFieldType `json:"process_auth_field_type"`
+	GroupBy              []GroupByItem         `json:"group_by"`
+	NeedTotalCount       bool                  `json:"need_total_count"` // 是否需要返回符合条件的记录总数
+	DataVersion          string                `json:"data_version"`     // v2 or v3
+}
+
+type GetSingleRecordReqParamV3 struct {
+	Select      []string `json:"select"`       // 筛选的字段列表
+	DataVersion string   `json:"data_version"` // v2 or v3
+}
+
+type GroupByItem struct {
+	Field string `json:"field"`
+}
+
 type BatchCreateRecord struct {
 	RecordIDs []int64 `json:"record_ids"`
 }

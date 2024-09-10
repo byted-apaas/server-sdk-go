@@ -126,16 +126,40 @@ func (q *Query) Find(ctx context.Context, records interface{}, unauthFields ...i
 	ctx = cUtils.SetUserAndAuthTypeToCtx(ctx, q.authType)
 	// 校验
 	q.findCheck(ctx)
-	if q.appCtx.IsDataV3() {
-		//todo wby
-		fmt.Printf("wby test data v3\n")
-	}
 
 	if q.err != nil {
 		return q.err
 	}
-	// OpenSDK 走新接口，因为新接口有权限控制
-	if q.appCtx.IsOpenSDK() {
+
+	if q.appCtx.IsDataV3() {
+		fmt.Printf("wby test data v3\n")
+		var criterion *cond2.Criterion
+		criterion, err = q.buildCriterion(ctx, q.filter)
+		if err != nil {
+			return err
+		}
+
+		var criterionV3 *cond2.CriterionV3
+		if criterion != nil {
+			criterionV3, err = criterion.ToCriterionV3()
+			if err != nil {
+				return err
+			}
+		}
+
+		param := &structs.GetRecordsReqParamV3{
+			PageSize:       q.limit,
+			Offset:         q.offset,
+			Select:         q.fields,
+			OrderBy:        q.order,
+			NeedTotalCount: false,
+			Filter:         criterionV3,
+			//Fuzzy:          q.fuzzySearch,
+			DataVersion: "v3",
+		}
+		unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, records)
+	} else if q.appCtx.IsOpenSDK() {
+		// OpenSDK 走新接口，因为新接口有权限控制
 		param := &structs.GetRecordsReqParamV2{
 			Limit:  q.limit,
 			Offset: q.offset,

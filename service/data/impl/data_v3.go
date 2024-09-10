@@ -12,7 +12,7 @@ type DataV3 struct {
 	appCtx *structs.AppCtx
 }
 
-func NewDataV3(s *structs.AppCtx) data.IDataV3 {
+func NewDataV3(s *structs.AppCtx) data.IData {
 	if s == nil {
 		s = &structs.AppCtx{}
 	}
@@ -30,9 +30,4 @@ func (d *DataV3) NewTransaction() data.ITransaction {
 
 func (d *DataV3) Oql(oql string, args ...interface{}) data.IOql {
 	return NewOql(d.appCtx, oql, args...)
-}
-
-// ToDataParam 将 dataV3 类型的参数转换为 data 类型的参数
-func (d *DataV3) ToDataParam(args interface{}) (newArgs interface{}) {
-	return
 }

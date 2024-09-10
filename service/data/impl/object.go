@@ -45,7 +45,7 @@ func (o *Object) Create(ctx context.Context, record interface{}) (*structs.Recor
 		return request.GetInstance(ctx).CreateRecordV2(ctx, o.appCtx, o.objectAPIName, record)
 	}
 	if o.appCtx.IsDataV3() {
-		// todo wby
+		return request.GetInstance(ctx).CreateRecordV3(ctx, o.appCtx, o.objectAPIName, record)
 	}
 
 	return request.GetInstance(ctx).CreateRecord(ctx, o.appCtx, o.objectAPIName, record)

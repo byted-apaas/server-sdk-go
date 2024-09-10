@@ -162,6 +162,7 @@ func (r *Record) DecodeFieldValue(fieldAPIName string, value interface{}) (err e
 	return nil
 }
 
+// DecodeRecordValue 将 record 解码成指定结构
 func (r *Record) DecodeRecordValue(value interface{}) (err error) {
 	if r == nil || r.Record == nil {
 		return exceptions.ErrRecordIsEmpty

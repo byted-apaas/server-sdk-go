@@ -489,3 +489,14 @@ type RegionFilter struct {
 	RecordFilter Criterion   `json:"recordFilter"`
 	Precondition interface{} `json:"precondition"` // 页面无配置入口
 }
+
+type LookupV2 struct {
+	ID   string       `json:"_id"`
+	Name Multilingual `json:"_name"`
+}
+
+type OptionV2 struct {
+	APIName string       `json:"api_name"`
+	Color   string       `json:"color"`
+	Label   Multilingual `json:"label"`
+}

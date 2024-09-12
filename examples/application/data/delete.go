@@ -4,7 +4,7 @@ import "github.com/byted-apaas/server-sdk-go/application"
 
 func deleteRecord(id string) {
 	application.GetLogger(ctx).Infof("=========== delete %d ==============", id)
-	err := application.DataV2.Object("objectForAll").Delete(ctx, id)
+	err := application.DataV3.Object("objectForAll").Delete(ctx, id)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("delete record error: %+v", err)
 		return
@@ -15,7 +15,7 @@ func deleteRecord(id string) {
 func batchDelete() {
 	// 先查
 	var record []TestObjectV2
-	err := application.DataV2.Object("objectForAll").Select("_id").Offset(4).Limit(2).Find(ctx, &record)
+	err := application.DataV3.Object("objectForAll").Select("_id").Offset(4).Limit(2).Find(ctx, &record)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("Find record error: %+v", err)
 		return
@@ -28,7 +28,7 @@ func batchDelete() {
 
 	// 再删
 	application.GetLogger(ctx).Infof("=========== batchDelete %+v ==============", ids)
-	err = application.DataV2.Object("objectForAll").BatchDelete(ctx, ids)
+	err = application.DataV3.Object("objectForAll").BatchDelete(ctx, ids)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("delete record error: %+v", err)
 		return
@@ -39,7 +39,7 @@ func batchDelete() {
 func batchDeleteWithResult() {
 	// 先查
 	var ids []string
-	err := application.DataV2.Object("objectForAll").Select("_id").Offset(4).Limit(2).Find(ctx, &ids)
+	err := application.DataV3.Object("objectForAll").Select("_id").Offset(4).Limit(2).Find(ctx, &ids)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("Find record error: %+v", err)
 		return
@@ -48,7 +48,7 @@ func batchDeleteWithResult() {
 	// 再删
 	var result interface{}
 	application.GetLogger(ctx).Infof("=========== batchDelete %d ==============", ids)
-	err = application.DataV2.Object("objectForAll").BatchDelete(ctx, ids, result)
+	err = application.DataV3.Object("objectForAll").BatchDelete(ctx, ids, result)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("delete record error: %+v", err)
 		return

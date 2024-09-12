@@ -23,7 +23,7 @@ func init() {
 	_ = os.Setenv("KTenantName", "lowcode_v2-dev347")
 	_ = os.Setenv("KNamespace", "package_76452c__c")
 	_ = os.Setenv("KSvcID", "byf_ny52kh7goc")
-	_ = os.Setenv("KSvcID", "0f99e213c471c567928c0338c89e3487ddd897665ac2a98122254fa834dfcfe2215401e390cef9f99bef7ef45387341d")
+	_ = os.Setenv("KSvcSecret", "0f99e213c471c567928c0338c89e3487ddd897665ac2a98122254fa834dfcfe2215401e390cef9f99bef7ef45387341d")
 	_ = os.Setenv("KClientID", "293edb95e4134ec379f65cebf3130c3f597170384875e592eeed2eb32413fcc2")
 	_ = os.Setenv("KClientSecret", "0cbf367f09ce47c6e94e97de5fecd3d42a5b94084bdfda26a33d72bcfc75ac15af1c2ef6c868d39a19e996e581dc92d8")
 	//_ = os.Setenv("KOpenApiDomain", "http://oapi-kunlun-staging-boe.byted.org")
@@ -46,9 +46,12 @@ func main() {
 	//find()
 	//findWithFilter()
 	//findStream()
+	//findOne()
 	//getCount()
 
-	batchDelete()
+	findWithFilterV1()
+
+	//batchDelete()
 
 	//oql()
 }

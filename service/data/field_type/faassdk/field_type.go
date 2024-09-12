@@ -79,7 +79,7 @@ type AvatarV3 struct {
 	Source  string             `json:"source"`
 	Image   *AttachmentModelV3 `json:"image,omitempty"`
 	Color   *string            `json:"color,omitempty"`
-	Content interface{}        `json:"content,omitempty"` // int
+	Content interface{}        `json:"content,omitempty"` // int | MultilingualV3
 }
 
 // AttachmentModelV3 文件（datav3 协议）

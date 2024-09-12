@@ -69,7 +69,7 @@ func createRecord() (string, string) {
 	var id1, id2 string
 	// creat1
 	application.GetLogger(ctx).Infof("=========== 1 ==============")
-	r1, err := application.DataV2.Object("objectForAll").Create(ctx, recordInterface)
+	r1, err := application.DataV3.Object("objectForAll").Create(ctx, recordInterface)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("create record error: %+v", err)
 		return "", ""
@@ -79,7 +79,7 @@ func createRecord() (string, string) {
 
 	// create2
 	application.GetLogger(ctx).Infof("=========== 2 ==============")
-	r2, err := application.DataV2.Object("objectForAll").Create(ctx, recordStruct)
+	r2, err := application.DataV3.Object("objectForAll").Create(ctx, recordStruct)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("create record error: %+v", err)
 		return "", ""

@@ -203,7 +203,7 @@ func (q *Query) FindOne(ctx context.Context, record interface{}, unauthFields ..
 		unauthFieldResult [][]string
 	)
 	if q.appCtx.IsDataV3() {
-		unauthFieldResult, err = q.findV3(ctx, records)
+		unauthFieldResult, err = q.findV3(ctx, &records)
 	} else if q.appCtx.IsOpenSDK() {
 		// OpenSDK 走新接口，因为新接口有权限控制
 		param := &structs.GetRecordsReqParamV2{
@@ -297,7 +297,7 @@ func (q *Query) findV3(ctx context.Context, records interface{}) (unauthFieldRes
 		//Fuzzy:          q.fuzzySearch, // todo wby
 		DataVersion: structs.DataVersionV3,
 	}
-	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, records)
+	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, &records)
 	return unauthFieldResult, err
 }
 

@@ -82,7 +82,7 @@ func update(id string) {
 	updateRecord := map[string]interface{}{
 		"text": "update",
 	}
-	err := application.DataV2.Object("objectForAll").Update(ctx, id, updateRecord)
+	err := application.DataV3.Object("objectForAll").Update(ctx, id, updateRecord)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("update record error: %+v", err)
 		return
@@ -92,7 +92,7 @@ func update(id string) {
 
 func update2(id string) {
 	application.GetLogger(ctx).Infof("=========== update2 %d ==============", id)
-	err := application.DataV2.Object("objectForAll").Update(ctx, id, updateRecordInterface)
+	err := application.DataV3.Object("objectForAll").Update(ctx, id, updateRecordInterface)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("update2 record error: %+v", err)
 		return
@@ -103,7 +103,7 @@ func update2(id string) {
 func update3(id string) {
 	application.GetLogger(ctx).Infof("=========== update3 %d ==============", id)
 
-	err := application.DataV2.Object("objectForAll").Update(ctx, id, updateRecordStruct)
+	err := application.DataV3.Object("objectForAll").Update(ctx, id, updateRecordStruct)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("update2 record error: %+v", err)
 		return

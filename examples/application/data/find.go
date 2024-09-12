@@ -17,7 +17,7 @@ import (
 func find() {
 	application.GetLogger(ctx).Infof("=============== find ==================")
 	var record1 []TestObjectV2
-	err := application.DataV2.Object("objectForAll").
+	err := application.DataV3.Object("objectForAll").
 		Offset(0).Limit(10).
 		Select(AllFieldAPINames...).
 		//Select("_id", "phone", "option", "email").
@@ -41,7 +41,7 @@ func findWithFilter() {
 	)
 
 	var record1 []std_record.Record
-	err := application.DataV2.Object("objectForAll").
+	err := application.DataV3.Object("objectForAll").
 		Offset(0).Limit(10).
 		//Select(AllFieldAPINames...).
 		Select("phone", "option", "email").
@@ -56,8 +56,8 @@ func findWithFilter() {
 
 func findOne() {
 	var record1 interface{}
-	err := application.DataV2.Object("objectForAll").
-		Offset(0).Limit(10).
+	err := application.DataV3.Object("objectForAll").
+		Where(operator.Eq("_id", 1808488296249436)).
 		Select(AllFieldAPINames...).
 		FindOne(ctx, &record1)
 	if err != nil {
@@ -71,14 +71,14 @@ func findOne() {
 	}
 
 	// 将 interface 转为 struct
-	var testObject = TestObject{}
+	var testObject = TestObjectV2{}
 	mapstructure.Decode(r, &testObject)
 	application.GetLogger(ctx).Infof("testObject: %+v", testObject)
 }
 
 func findStream() {
 	application.GetLogger(ctx).Infof(" ============ findstream =============")
-	err := application.DataV2.Object("objectForAll").
+	err := application.DataV3.Object("objectForAll").
 		Select(AllFieldAPINames...).
 		FindStream(ctx, reflect.TypeOf(&TestObjectV2{}), nil, structs.FindStreamParam{
 			Handler: func(ctx context.Context, data *structs.FindStreamData) (err error) {
@@ -106,7 +106,7 @@ func findStream() {
 
 func getCount() {
 	application.GetLogger(ctx).Infof(" ============ count =============")
-	count, err := application.DataV2.Object("objectForAll").Select(AllFieldAPINames...).Count(ctx)
+	count, err := application.DataV3.Object("objectForAll").Select(AllFieldAPINames...).Count(ctx)
 	if err != nil {
 		application.GetLogger(ctx).Infof("err: %+v", err)
 		return
@@ -114,10 +114,11 @@ func getCount() {
 	application.GetLogger(ctx).Infof("count: %d", count)
 }
 
+// ============================================ 以下为 datav1 的请求 =======================================
 // Record 类型转换
 func findOneRecordStruct1() {
 	var record1 std_record.Record
-	err := application.DataV2.Object("objectForAll").
+	err := application.Data.Object("objectForAll").
 		Offset(0).Limit(10).
 		Select(AllFieldAPINames...).
 		FindOne(ctx, &record1)
@@ -138,7 +139,7 @@ func findOneRecordStruct1() {
 func findOneRecordStruct() {
 	var record1 TestObject
 	var unauthFiled [][]string
-	err := application.DataV2.Object("objectForAll").
+	err := application.Data.Object("objectForAll").
 		Offset(0).Limit(10).
 		Select(AllFieldAPINames...).
 		FindOne(ctx, &record1, &unauthFiled)
@@ -155,4 +156,29 @@ func findOneRecordStruct() {
 	//	application.GetLogger(ctx).Infof("err: %+v", err)
 	//}
 	//application.GetLogger(ctx).Infof("testObject: %+v", testObject)
+}
+
+func findWithFilterV1() {
+	//cond := operator.And(
+	//	operator.Gt("bigintType", 0),
+	//	operator.NotEmpty("text"),
+	//	operator.NotEmpty("email"))
+
+	cond := operator.Or(
+		operator.Eq("_id", 1808488296249436),
+		operator.Eq("_id", 1809101723792428),
+	)
+
+	var record1 []std_record.Record
+	err := application.Data.Object("objectForAll").
+		Offset(0).Limit(10).
+		//Select(AllFieldAPINames...).
+		Select("phone", "option", "email").
+		Where(cond).
+		Find(ctx, &record1)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("err: %v", err)
+	}
+	application.GetLogger(ctx).Infof("total: %v", len(record1))
+	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
 }

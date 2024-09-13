@@ -114,3 +114,14 @@ type MultilingualV3 struct {
 	En string `json:"en_US,omitempty"`
 	Zh string `json:"zh_CN,omitempty"`
 }
+
+type LookupV3 struct {
+	ID   string         `json:"_id"`
+	Name MultilingualV3 `json:"_name"`
+}
+
+type OptionV3 struct {
+	APIName string         `json:"api_name"`
+	Color   string         `json:"color"`
+	Label   MultilingualV3 `json:"label"`
+}

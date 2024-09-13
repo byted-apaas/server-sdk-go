@@ -104,6 +104,20 @@ func findStream() {
 
 }
 
+func findWithFuzzySearch() {
+	application.GetLogger(ctx).Infof(" ============ findWithFuzzySearch =============")
+	var record1 []TestObjectV2
+	err := application.DataV3.Object("objectForAll").
+		Select(AllFieldAPINames...).
+		FuzzySearch("update", []string{"text", "phone"}).
+		Find(ctx, &record1)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("[findWithFuzzySearch] err: %v", err)
+		return
+	}
+	application.GetLogger(ctx).Infof("count: %d, record1: %s", len(record1), cUtils.ToString(record1))
+}
+
 func getCount() {
 	application.GetLogger(ctx).Infof(" ============ count =============")
 	count, err := application.DataV3.Object("objectForAll").Select(AllFieldAPINames...).Count(ctx)

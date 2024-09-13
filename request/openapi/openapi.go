@@ -675,7 +675,7 @@ func (r *RequestHttp) BatchCreateRecordV3(ctx context.Context, appCtx *structs.A
 		return nil, cExceptions.InternalError("BatchCreateRecordV3 failed, err: %v", err)
 	}
 
-	return result.RecordIDs, nil
+	return result.GetIDs(), nil
 }
 
 func (r *RequestHttp) BatchCreateRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records interface{}) (int64, error) {
@@ -822,7 +822,10 @@ func (r *RequestHttp) BatchUpdateRecordV2(ctx context.Context, appCtx *structs.A
 }
 
 func (r *RequestHttp) BatchUpdateRecordV3(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, records map[string]interface{}) (*structs.BatchResultV3, error) {
-	newRecords := std_record.ConvertStdRecordsFromMapV3(records)
+	newRecords, err := std_record.ConvertStdRecordsFromMapV3(records)
+	if err != nil {
+		return nil, err
+	}
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.BatchUpdateRecordV3)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -831,10 +834,10 @@ func (r *RequestHttp) BatchUpdateRecordV3(ctx context.Context, appCtx *structs.A
 	}
 
 	body := map[string]interface{}{
-		"record":       newRecords,
+		"records":      newRecords,
 		"data_version": structs.DataVersionV3,
 	}
-	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchUpdateRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().PatchJson(ctx, GetPathBatchUpdateRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -975,7 +978,7 @@ func (r *RequestHttp) BatchDeleteRecordV3(ctx context.Context, appCtx *structs.A
 	body := map[string]interface{}{
 		"ids": recordIDs,
 	}
-	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathBatchDeleteRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
+	data, err := cUtils.ErrorWrapper(getOpenapiClient().DeleteJson(ctx, GetPathBatchDeleteRecordV3(namespace, objectAPIName), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {
 		return nil, err
 	}
@@ -1018,7 +1021,7 @@ func (r *RequestHttp) BatchDeleteRecordAsync(ctx context.Context, appCtx *struct
 	return result.TaskID, nil
 }
 
-func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, placeholders map[string]int64, operations []*structs.TransactionOperation) (map[string]int64, error) {
+func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, placeholders map[string]int64, operations []*structs.TransactionOperation, dataVersion string) (map[string]int64, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.ModifyRecordsWithTransaction)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -1033,6 +1036,9 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"setSystemField": intern.CommitSetSystemMod_SysFieldSet,
 	}
+	//if dataVersion == structs.DataVersionV3 {
+	//	body["data_version"] = dataVersion
+	//}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {

@@ -294,8 +294,11 @@ func (q *Query) findV3(ctx context.Context, records interface{}) (unauthFieldRes
 		OrderBy:        q.order,
 		NeedTotalCount: false,
 		Filter:         criterionV3,
-		//Fuzzy:          q.fuzzySearch, // todo wby
-		DataVersion: structs.DataVersionV3,
+		DataVersion:    structs.DataVersionV3,
+	}
+	if q.fuzzySearch != nil {
+		param.QuickQuery = q.fuzzySearch.Keyword
+		param.QuickQueryFields = q.fuzzySearch.FieldAPINames
 	}
 	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, &records)
 	return unauthFieldResult, err

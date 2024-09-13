@@ -50,7 +50,7 @@ type IRequestOpenapi interface {
 	BatchDeleteRecordAsync(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, recordIDs []int64) (int64, error)
 
 	Oql(ctx context.Context, appCtx *structs.AppCtx, oql string, args interface{}, namedArgs map[string]interface{}, resultSet interface{}) (unauthFields [][]string, err error)
-	Transaction(ctx context.Context, appCtx *structs.AppCtx, placeholders map[string]int64, operations []*structs.TransactionOperation) (map[string]int64, error)
+	Transaction(ctx context.Context, appCtx *structs.AppCtx, placeholders map[string]int64, operations []*structs.TransactionOperation, dataVersion string) (map[string]int64, error)
 
 	DownloadFile(ctx context.Context, appCtx *structs.AppCtx, fileID string) ([]byte, error)
 	DownloadAvatar(ctx context.Context, appCtx *structs.AppCtx, imageID string) ([]byte, error)

@@ -490,13 +490,13 @@ type RegionFilter struct {
 	Precondition interface{} `json:"precondition"` // 页面无配置入口
 }
 
-type LookupV3 struct {
-	ID   string       `json:"_id"`
-	Name Multilingual `json:"_name"`
-}
-
-type OptionV3 struct {
-	APIName string       `json:"api_name"`
-	Color   string       `json:"color"`
-	Label   Multilingual `json:"label"`
-}
+//type LookupV3 struct {
+//	ID   string                 `json:"_id"`
+//	Name faassdk.MultilingualV3 `json:"_name"`
+//}
+//
+//type OptionV3 struct {
+//	APIName string                 `json:"api_name"`
+//	Color   string                 `json:"color"`
+//	Label   faassdk.MultilingualV3 `json:"label"`
+//}

@@ -54,8 +54,11 @@ func (p *GetRecordsReqParam) TransferToDataV3() (*GetRecordsReqParamV3, error) {
 		Select:         p.FieldApiNames,
 		OrderBy:        p.Order,
 		NeedTotalCount: false,
-		//Fuzzy:          q.fuzzySearch, // todo wby
-		DataVersion: DataVersionV3,
+		DataVersion:    DataVersionV3,
+	}
+	if p.FuzzySearch != nil {
+		param.QuickQuery = p.FuzzySearch.Keyword
+		param.QuickQueryFields = p.FuzzySearch.FieldAPINames
 	}
 
 	var criterionV3 *cond2.CriterionV3
@@ -91,10 +94,12 @@ type GetRecordsReqParamV2 struct {
 }
 
 type GetRecordsReqParamV3 struct {
-	PageSize             int64                 `json:"page_size"` // 是期望服务端返回的条目个数，不填则取默认值，默认值为 500， 对应 v2 的 limit
-	Offset               int64                 `json:"offset"`    // 偏移量，从 0 开始
-	Select               []string              `json:"select"`    // 筛选的字段列表
-	Filter               interface{}           `json:"filter"`    // Criterion
+	PageSize             int64                 `json:"page_size"`          // 是期望服务端返回的条目个数，不填则取默认值，默认值为 500， 对应 v2 的 limit
+	Offset               int64                 `json:"offset"`             // 偏移量，从 0 开始
+	Select               []string              `json:"select"`             // 筛选的字段列表
+	Filter               interface{}           `json:"filter"`             // Criterion
+	QuickQuery           string                `json:"quick_query"`        // 模糊搜索
+	QuickQueryFields     []string              `json:"quick_query_fields"` // 模糊搜索字段列表
 	OrderBy              []*Order              `json:"order_by"`
 	ProcessAuthFieldType *ProcessAuthFieldType `json:"process_auth_field_type"`
 	GroupBy              []GroupByItem         `json:"group_by"`
@@ -116,7 +121,23 @@ type BatchCreateRecord struct {
 }
 
 type BatchCreateRecordV3 struct {
-	RecordIDs []string `json:"record_ids"`
+	Items []BatchCreateItem `json:"items"`
+}
+
+type BatchCreateItem struct {
+	ID      string `json:"_id"`
+	Success bool   `json:"success"`
+}
+
+func (b *BatchCreateRecordV3) GetIDs() []string {
+	if b == nil {
+		return nil
+	}
+	var ids []string
+	for _, item := range b.Items {
+		ids = append(ids, item.ID)
+	}
+	return ids
 }
 
 type BatchCreateRecordV2 struct {

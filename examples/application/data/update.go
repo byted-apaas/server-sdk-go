@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
@@ -8,10 +10,10 @@ import (
 
 var (
 	updateRecordInterface = map[string]interface{}{
-		"text":         "testv3Interface",
+		"text":         "update_testv3Interface",
 		"bigintType":   "2",
 		"dateType":     "2024-08-20",
-		"datetimeType": 1724688780000,
+		"datetimeType": time.Now().UnixMilli(),
 		"decimal":      "1",
 		"formula":      "2",
 		"option":       "option_7f97916560b",
@@ -32,7 +34,7 @@ var (
 		Text:       "updateStruct",
 		BigintType: "212",
 		DateType:   "2024-09-10",
-		Datetime:   1724688780000,
+		Datetime:   time.Now().UnixMilli(),
 		Number:     12.3,
 		Decimal:    "12",
 		Formula:    "4",
@@ -50,10 +52,10 @@ var (
 		RichText: &faassdk.RichTextV3{
 			Raw: "<div style=\"white-space: pre-wrap;\">&lt;p&gt;testUpdate&lt;/p&gt;</div>",
 		},
-		Option: &structs.OptionV3{ // 这里虽然可以传结构过去，并且也自己改了颜色和 label，但是创建的时候还是只会取 api_name，label 用的是之前设置的 label
+		Option: &faassdk.OptionV3{ // 这里虽然可以传结构过去，并且也自己改了颜色和 label，但是创建的时候还是只会取 api_name，label 用的是之前设置的 label
 			APIName: "option_7f97916560b",
 			Color:   "red",
-			Label: structs.Multilingual{
+			Label: faassdk.MultilingualV3{
 				Zh: "选项1",
 			},
 		},
@@ -71,6 +73,20 @@ var (
 				Size:     "12237",
 				Token:    "BIZ_06aa3803148f4d7791ab3699e84a5ac3",
 				URI:      "/ae/api/v1/assets/attachment/download?token=BIZ_06aa3803148f4d7791ab3699e84a5ac3",
+			},
+		},
+		Region: &faassdk.RegionV3{
+			ID:         "1736322104113191",
+			RegionCode: "MDCY00003394",
+			FullPath: faassdk.MultilingualV3{
+				Zh: " / 瓜达拉哈拉",
+				En: "Guadalajara /  / Spain",
+			},
+		},
+		Lookup: &faassdk.LookupV3{
+			ID: "1808488223853568",
+			Name: faassdk.MultilingualV3{
+				Zh: "1808488223853568",
 			},
 		},
 	}
@@ -109,4 +125,32 @@ func update3(id string) {
 		return
 	}
 	application.GetLogger(ctx).Infof("update2 record success, id: %+v", id)
+}
+
+func batchUpdate() {
+	application.GetLogger(ctx).Infof("=========== batchUpdate ==============")
+	// 先查
+	var records []TestObjectV2
+	err := application.DataV3.Object("objectForAll").Select("_id").Offset(4).Limit(2).Find(ctx, &records)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("Find record error: %+v", err)
+		return
+	}
+	application.GetLogger(ctx).Infof("records: %+v", records)
+
+	updateRecords := make(map[string]interface{})
+	for i, r := range records {
+		if i%2 == 0 {
+			updateRecords[r.ID] = updateRecordInterface
+		} else {
+			updateRecords[r.ID] = updateRecordStruct
+		}
+	}
+	application.GetLogger(ctx).Infof("updateRecords: %+v", updateRecords)
+
+	err = application.DataV3.Object("objectForAll").BatchUpdate(ctx, updateRecords)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("batchUpdate record error: %+v", err)
+		return
+	}
 }

@@ -20,7 +20,8 @@ type IData interface {
 type IDataV3 interface {
 	Object(objectAPIName string) IObjectV3
 	NewTransaction() ITransaction
-	Oql(oql string, args ...interface{}) IOql
+	// 本期暂时不支持
+	//Oql(oql string, args ...interface{}) IOql
 }
 
 //go:generate mockery --name=IDataV2 --structname=DataV2 --filename=DataV2.go

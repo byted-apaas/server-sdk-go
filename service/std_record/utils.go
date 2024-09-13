@@ -1,5 +1,9 @@
 package std_record
 
+import (
+	"encoding/json"
+)
+
 func ConvertStdRecord(record interface{}) (newRecord interface{}) {
 	if record == nil {
 		return nil
@@ -54,14 +58,36 @@ func ConvertStdRecordsFromMap(records map[int64]interface{}) map[int64]interface
 	return newRecords
 }
 
-func ConvertStdRecordsFromMapV3(records map[string]interface{}) map[string]interface{} {
+func ConvertStdRecordsFromMapV3(records map[string]interface{}) ([]interface{}, error) {
 	if records == nil || len(records) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	newRecords := map[string]interface{}{}
+	var newRecords []interface{}
 	for key, record := range records {
-		newRecords[key] = ConvertStdRecord(record)
+
+		tmp := ConvertStdRecord(record)
+
+		newRecord, err := decodeRecord(tmp)
+		if err != nil {
+			return nil, err
+		}
+
+		newRecord["_id"] = key
+		newRecords = append(newRecords, newRecord)
 	}
-	return newRecords
+	return newRecords, nil
+}
+
+func decodeRecord(record interface{}) (map[string]interface{}, error) {
+	var newRecord map[string]interface{}
+	data, err := json.Marshal(record)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(data, &newRecord)
+	if err != nil {
+		return nil, err
+	}
+	return newRecord, nil
 }

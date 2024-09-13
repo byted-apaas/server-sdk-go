@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/byted-apaas/server-common-go/utils"
-	"github.com/byted-apaas/server-sdk-go/application"
 	"context"
 	"os"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
+	"github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/application"
 )
 
 var (
@@ -18,7 +18,8 @@ func init() {
 	// 应用：https://lowcode_v2-dev347.aedev.feishuapp.bytedance.net/ae/builder/v3/package_76452c__c/pc?lane_id=develop
 	ctx = context.WithValue(ctx, cConstants.CtxKeyEnvBoe, "boe")
 	//ctx = context.WithValue(ctx, cConstants.CtxKeyUser, int64(1808486394085627))
-	ctx = context.WithValue(ctx, cConstants.CtxKeyLogID, "202409060915390101741491814832wby")
+	ctx = context.WithValue(ctx, cConstants.CtxKeyLogID, genLogID())
+	ctx = context.WithValue(ctx, cConstants.CtxKeyTTEnv, "boe_faas_sdk")
 	_ = os.Setenv("ENV", "staging")
 	_ = os.Setenv("KTenantName", "lowcode_v2-dev347")
 	_ = os.Setenv("KNamespace", "package_76452c__c")
@@ -48,10 +49,18 @@ func main() {
 	//findStream()
 	//findOne()
 	//getCount()
+	//findWithFuzzySearch()
 
-	findWithFilterV1()
+	//findWithFilterV1()
 
 	//batchDelete()
+	//batchDeleteWithResult()
+
+	//batchCreate()
+	batchUpdate()
 
 	//oql()
+
+	//transactionV3()
+	//batchTransactionV3()
 }

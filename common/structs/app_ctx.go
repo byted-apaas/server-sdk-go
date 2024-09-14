@@ -30,6 +30,9 @@ func (a *AppCtx) GetEnv() constants.PlatformEnvType {
 }
 
 func (a *AppCtx) IsDataV3() bool {
+	if a == nil {
+		return false
+	}
 	return a.DataVersion == DataVersionV3
 }
 

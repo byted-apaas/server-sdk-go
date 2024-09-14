@@ -10,3 +10,9 @@ type Formula struct {
 	ReturnType string        `json:"returnType"`
 	Formula    structs.I18ns `json:"formula"`
 }
+
+type FormulaV3 struct {
+	FieldBaseV3
+	ReturnType string        `json:"returnType"`
+	Formula    structs.I18ns `json:"formula"`
+}

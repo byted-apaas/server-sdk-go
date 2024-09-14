@@ -8,3 +8,9 @@ type RichText struct {
 	Required  bool `json:"required"`  // 默认值：false
 	MaxLength int  `json:"maxLength"` // 默认值：1000
 }
+
+type RichTextV3 struct {
+	FieldBaseV3
+	Required  bool `json:"required"`  // 默认值：false
+	MaxLength int  `json:"maxLength"` // 默认值：1000
+}

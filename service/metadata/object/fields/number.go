@@ -10,3 +10,11 @@ type Number struct {
 	DisplayAsPercentage bool `json:"displayAsPercentage"`
 	DecimalPlacesNumber int  `json:"decimalPlacesNumber"`
 }
+
+type NumberV3 struct {
+	FieldBaseV3
+	Required            bool `json:"required"`
+	Unique              bool `json:"unique"`
+	DisplayAsPercentage bool `json:"displayAsPercentage"`
+	DecimalPlacesNumber int  `json:"decimalPlacesNumber"`
+}

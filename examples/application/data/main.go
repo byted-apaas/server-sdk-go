@@ -57,8 +57,10 @@ func main() {
 	//batchDeleteWithResult()
 
 	//batchCreate()
-	batchUpdate()
+	//batchUpdate()
 
+	getFields()
+	//getField()
 	//oql()
 
 	//transactionV3()

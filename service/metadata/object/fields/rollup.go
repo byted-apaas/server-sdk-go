@@ -3,7 +3,9 @@
 
 package fields
 
-import "github.com/byted-apaas/server-sdk-go/common/structs"
+import (
+	"github.com/byted-apaas/server-sdk-go/common/structs"
+)
 
 type Rollup struct {
 	FieldBase
@@ -13,4 +15,14 @@ type Rollup struct {
 	RollupFieldApiName       string             `json:"rollupFieldApiName"`
 	RollupLookupFieldApiName string             `json:"rollupLookupFieldApiName"`
 	Filter                   *structs.Criterion `json:"filter"`
+}
+
+type RollupV3 struct {
+	FieldBaseV3
+
+	RollupType               string             `json:"rollupType"`
+	RollupObjectApiName      string             `json:"rollupObjectApiName"`
+	RollupFieldApiName       string             `json:"rollupFieldApiName"`
+	RollupLookupFieldApiName string             `json:"rollupLookupFieldApiName"`
+	Filter                   *structs.Criterion `json:"filter"` // todo wby 待确认
 }

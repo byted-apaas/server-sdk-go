@@ -13,3 +13,12 @@ type Region struct {
 	StrictLevel int64                   `json:"strictLevel"`
 	Filter      []*structs.RegionFilter `json:"filter"`
 }
+
+type RegionV3 struct {
+	FieldBaseV3
+	Required    bool                      `json:"required"`
+	Multiple    bool                      `json:"multiple"`
+	OptionLevel bool                      `json:"optionLevel"`
+	StrictLevel int64                     `json:"strictLevel"`
+	Filter      []*structs.RegionFilterV3 `json:"filter"`
+}

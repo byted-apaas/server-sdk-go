@@ -11,3 +11,12 @@ type Multilingual struct {
 	Multiline     bool  `json:"multiline"`
 	MaxLength     int64 `json:"maxLength"`
 }
+
+type MultilingualV3 struct {
+	FieldBaseV3
+	Required      bool  `json:"required"`
+	Unique        bool  `json:"unique"`
+	CaseSensitive bool  `json:"caseSensitive"`
+	Multiline     bool  `json:"multiline"`
+	MaxLength     int64 `json:"maxLength"`
+}

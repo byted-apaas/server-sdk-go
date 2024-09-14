@@ -7,3 +7,8 @@ type AvatarOrLogo struct {
 	FieldBase
 	DisplayStyle string `json:"displayStyle"`
 }
+
+type AvatarOrLogoV3 struct {
+	FieldBaseV3
+	DisplayStyle string `json:"displayStyle"`
+}

@@ -16,7 +16,7 @@ type TestCreateObjectV2 struct {
 	Datetime       int64                        `json:"datetimeType"` // 日期时间
 	Phone          *faassdk.PhoneNumberV3       `json:"phone"`        // 手机号
 	Email          string                       `json:"email"`        // 邮箱
-	Option         *structs.OptionV3            `json:"option"`       // 选项  *structs.OptionV3 | string， 传 string 需要传 api_name
+	Option         *faassdk.OptionV3            `json:"option"`       // 选项  *structs.OptionV3 | string， 传 string 需要传 api_name
 	Boolean        bool                         `json:"booleanType"`  // bool 值
 	Avatar         *faassdk.AvatarV3            `json:"avatar"`       // 头像
 	Multilingual   *structs.Multilingual        `json:"multilingual"` // 多语
@@ -25,7 +25,7 @@ type TestCreateObjectV2 struct {
 	Autoid         string                       `json:"autoid,omitempty"`
 	Formula        string                       `json:"formula,omitempty"`
 	Lookup         interface{}                  `json:"lookup"`                   // 可以用 interface 也可以用 *fields.Lookup
-	ReferenceField *structs.LookupV3            `json:"referenceField,omitempty"` // 这个类型由引用的字段类型决定，这里我引用了一个“创建人”
+	ReferenceField *faassdk.LookupV3            `json:"referenceField,omitempty"` // 这个类型由引用的字段类型决定，这里我引用了一个“创建人”
 	Decimal        string                       `json:"decimal"`
 	Region         *faassdk.RegionV3            `json:"region"`
 	//Rollup         fields.Rollup         `json:"rollup"`
@@ -41,7 +41,7 @@ type TestObjectV2 struct {
 	Datetime       int64                        `json:"datetimeType"` // 日期时间
 	Phone          *faassdk.PhoneNumberV3       `json:"phone"`        // 手机号
 	Email          string                       `json:"email"`        // 邮箱
-	Option         *structs.OptionV3            `json:"option"`       // 选项  *structs.OptionV3 | string， 传 string 需要传 api_name
+	Option         *faassdk.OptionV3            `json:"option"`       // 选项  *structs.OptionV3 | string， 传 string 需要传 api_name
 	Boolean        bool                         `json:"booleanType"`  // bool 值
 	Avatar         *faassdk.AvatarV3            `json:"avatar"`       // 头像
 	Multilingual   *structs.Multilingual        `json:"multilingual"` // 多语
@@ -50,7 +50,7 @@ type TestObjectV2 struct {
 	Autoid         string                       `json:"autoid,omitempty"`
 	Formula        string                       `json:"formula,omitempty"`
 	Lookup         interface{}                  `json:"lookup"`                   // 可以用 interface 也可以用 *fields.Lookup
-	ReferenceField *structs.LookupV3            `json:"referenceField,omitempty"` // 这个类型由引用的字段类型决定，这里我引用了一个“创建人”
+	ReferenceField *faassdk.LookupV3            `json:"referenceField,omitempty"` // 这个类型由引用的字段类型决定，这里我引用了一个“创建人”
 	Decimal        string                       `json:"decimal"`
 	Region         *faassdk.RegionV3            `json:"region"`
 	//Rollup         fields.Rollup         `json:"rollup"`

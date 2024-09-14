@@ -8,3 +8,9 @@ type Bigint struct {
 	Required bool `json:"required"`
 	Unique   bool `json:"unique"`
 }
+
+type BigintV3 struct {
+	FieldBaseV3
+	Required bool `json:"required"`
+	Unique   bool `json:"unique"`
+}

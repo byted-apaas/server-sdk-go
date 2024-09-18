@@ -17,16 +17,19 @@ import (
 func find() {
 	application.GetLogger(ctx).Infof("=============== find ==================")
 	var record1 []TestObjectV2
+	var unauthFiled [][]string
 	err := application.DataV3.Object("objectForAll").
 		Offset(0).Limit(10).
-		Select(AllFieldAPINames...).
-		//Select("_id", "phone", "option", "email").
-		Find(ctx, &record1)
+		//Select(AllFieldAPINames...).
+		//UseSystemAuth().
+		Select("_id", "phone", "option", "email").
+		Find(ctx, &record1, &unauthFiled)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("err: %v", err)
 		return
 	}
-	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
+	application.GetLogger(ctx).Infof("record1Count: %d, record1: %s", len(record1), cUtils.ToString(record1))
+	application.GetLogger(ctx).Infof("unauthFiled, %d, unauthFiled: %s", len(unauthFiled), cUtils.ToString(unauthFiled))
 }
 
 func find2() {
@@ -169,9 +172,11 @@ func findOneRecordStruct() {
 	err := application.Data.Object("objectForAll").
 		Offset(0).Limit(10).
 		Select(AllFieldAPINames...).
+		//UseUserAuth().
 		FindOne(ctx, &record1, &unauthFiled)
 	if err != nil {
-		panic(err)
+		application.GetLogger(ctx).Errorf("err: %+v", err)
+		return
 	}
 	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
 	application.GetLogger(ctx).Infof("unauthFiled: %s", cUtils.ToString(unauthFiled))

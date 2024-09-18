@@ -317,7 +317,6 @@ func (r *RequestHttp) GetRecordsV3(ctx context.Context, appCtx *structs.AppCtx, 
 	return unauthFields, nil
 }
 
-// todo wby
 // getRecordsV3Request 获取记录列表
 func (r *RequestHttp) getRecordsV3Request(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV3) (string, [][]string, error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetRecordsV3)
@@ -344,7 +343,7 @@ func (r *RequestHttp) getRecordsV3Request(ctx context.Context, appCtx *structs.A
 	recordsRaw := gjson.GetBytes(data, "items").Raw
 
 	unauthPermissionInfo := intern.UnauthPermissionInfo{}
-	unauthPermissionInfoStr := gjson.GetBytes(data, "unauthPermissionInfo").Raw
+	unauthPermissionInfoStr := gjson.GetBytes(data, "unauth_permission_info").Raw
 	if len(unauthPermissionInfoStr) > 0 {
 		err = cUtils.JsonUnmarshalBytes([]byte(unauthPermissionInfoStr), &unauthPermissionInfo)
 		if err != nil {
@@ -391,7 +390,6 @@ func (r *RequestHttp) getSingleRecordV3Request(ctx context.Context, appCtx *stru
 		return "", nil, err
 	}
 
-	// todo wby
 	recordsRaw := gjson.GetBytes(data, "item").Raw
 
 	unauthPermissionInfo := intern.UnauthPermissionInfo{}
@@ -1036,6 +1034,7 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"setSystemField": intern.CommitSetSystemMod_SysFieldSet,
 	}
+	// todo wby
 	//if dataVersion == structs.DataVersionV3 {
 	//	body["data_version"] = dataVersion
 	//}

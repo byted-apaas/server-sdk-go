@@ -29,6 +29,19 @@ func find() {
 	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
 }
 
+func find2() {
+	application.GetLogger(ctx).Infof("=============== find ==================")
+	var record1 []std_record.Record
+	err := application.DataV3.Object("extractSubObject").
+		Select("_id", "extractSubObject", "lookup2").
+		Find(ctx, &record1)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("err: %v", err)
+		return
+	}
+	application.GetLogger(ctx).Infof("record1: %s", cUtils.ToString(record1))
+}
+
 func findWithFilter() {
 	//cond := operator.And(
 	//	operator.Gt("bigintType", 0),
@@ -109,7 +122,7 @@ func findWithFuzzySearch() {
 	var record1 []TestObjectV2
 	err := application.DataV3.Object("objectForAll").
 		Select(AllFieldAPINames...).
-		FuzzySearch("update", []string{"text", "phone"}).
+		FuzzySearch("update", []string{"text2"}).
 		Find(ctx, &record1)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("[findWithFuzzySearch] err: %v", err)

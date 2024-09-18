@@ -3,7 +3,10 @@
 
 package fields
 
-import "github.com/byted-apaas/server-sdk-go/common/structs"
+import (
+	"github.com/byted-apaas/server-sdk-go/common/structs"
+	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
+)
 
 type Formula struct {
 	FieldBase
@@ -13,6 +16,6 @@ type Formula struct {
 
 type FormulaV3 struct {
 	FieldBaseV3
-	ReturnType string        `json:"returnType"`
-	Formula    structs.I18ns `json:"formula"`
+	ReturnType string                  `json:"returnType"`
+	Formula    *faassdk.MultilingualV3 `json:"formula"`
 }

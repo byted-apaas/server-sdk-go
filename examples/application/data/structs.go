@@ -10,6 +10,7 @@ type TestCreateObjectV2 struct {
 	// 创建得传 int64 不然会报错。。。或者不传也可以
 	ID             int64                        `json:"_id"`
 	Text           string                       `json:"text"`         // 文本
+	Text2          string                       `json:"text2"`        // 文本2
 	BigintType     string                       `json:"bigintType"`   // 整数
 	Number         float64                      `json:"number"`       // 浮点数
 	DateType       string                       `json:"dateType"`     // 日期
@@ -35,6 +36,7 @@ type TestCreateObjectV2 struct {
 type TestObjectV2 struct {
 	ID             string                       `json:"_id"`
 	Text           string                       `json:"text"`         // 文本
+	Text2          string                       `json:"text2"`        // 文本2
 	BigintType     string                       `json:"bigintType"`   // 整数
 	Number         float64                      `json:"number"`       // 浮点数
 	DateType       string                       `json:"dateType"`     // 日期
@@ -78,7 +80,7 @@ type TestObject struct {
 	ReferenceField *fields.Lookup        `json:"referenceField,omitempty"` // 这个类型由引用的字段类型决定，这里我引用了一个“创建人”
 	Decimal        string                `json:"decimal"`
 	Region         *faassdk.Region       `json:"region"`
-	//Rollup         fields.Rollup         `json:"rollup"`
+	Rollup         fields.Rollup         `json:"rollup"`
 	//ExtractSubObject *SubObject            `json:"extractSubObject,omitempty"`
 }
 

@@ -218,7 +218,7 @@ func parseCompositeV3(f *structs.Field) (interface{}, error) {
 	if err := utils.Decode(f.Type.Settings, &s); err != nil {
 		return nil, err
 	}
-	parseFields, err := ParseFields(s.RelatedToFields)
+	parseFields, err := ParseFieldsV3(s.RelatedToFields)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func parseExtractCompositeV3(f *structs.Field) (*fields.ExtractSingleRecordV3, e
 	if err := utils.Decode(f.Type.Settings, &s); err != nil {
 		return nil, err
 	}
-	parseFields, err := ParseFields(s.RelatedToFields)
+	parseFields, err := ParseFieldsV3(s.RelatedToFields)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func parseFormulaV3(f *structs.Field) (*fields.FormulaV3, error) {
 	return &fields.FormulaV3{
 		FieldBaseV3: parseBaseV3(f),
 		ReturnType:  s.ReturnType,
-		Formula:     s.Formulas,
+		Formula:     s.Formulas.TransToMultilingualV3(),
 	}, nil
 }
 

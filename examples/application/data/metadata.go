@@ -7,7 +7,8 @@ import (
 
 func getFields() {
 	var fields interface{}
-	err := application.MetadataV3.Object("objectForAll").GetFields(ctx, &fields)
+	// extractSubObject / objectForAll
+	err := application.MetadataV3.Object("extractSubObject").GetFields(ctx, &fields)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("err: %v", err)
 		return

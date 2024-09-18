@@ -300,7 +300,7 @@ func (q *Query) findV3(ctx context.Context, records interface{}) (unauthFieldRes
 		param.QuickQuery = q.fuzzySearch.Keyword
 		param.QuickQueryFields = q.fuzzySearch.FieldAPINames
 	}
-	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, &records)
+	unauthFieldResult, err = request.GetInstance(ctx).GetRecordsV3(ctx, q.appCtx, q.objectAPIName, param, records)
 	return unauthFieldResult, err
 }
 

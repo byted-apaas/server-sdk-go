@@ -1034,10 +1034,10 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 		"taskId":         cUtils.GetTriggerTaskIDFromCtx(ctx),
 		"setSystemField": intern.CommitSetSystemMod_SysFieldSet,
 	}
-	// todo wby
-	//if dataVersion == structs.DataVersionV3 {
-	//	body["data_version"] = dataVersion
-	//}
+
+	if dataVersion == structs.DataVersionV3 {
+		body["data_version"] = dataVersion
+	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))
 	if err != nil {

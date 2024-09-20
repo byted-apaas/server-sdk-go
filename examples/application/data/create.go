@@ -33,7 +33,7 @@ var (
 		Text:       "testV3Struct",
 		BigintType: "3",
 		DateType:   "2024-09-09",
-		Datetime:   1724688780000,
+		Datetime:   time.Now().UnixMilli(),
 		Decimal:    "2",
 		Formula:    "3",
 		Number:     111.1,

@@ -38,13 +38,14 @@ func init() {
 func main() {
 	application.GetLogger(ctx).Infof("logid: %s", utils.GetLogIDFromCtx(ctx))
 
+	//createRecord()
 	//delID, updateID := createRecord()
 	//deleteRecord(delID)
 	//update(updateID)
 	////update2(updateID)
 	//update3(updateID)
 	//
-	find()
+	//find()
 	//findWithFilter()
 	//findStream()
 	//findOne()
@@ -52,6 +53,7 @@ func main() {
 	//findWithFuzzySearch()
 	//find2()
 	//findOneRecordStruct()
+	//findError()
 
 	//findWithFilterV1()
 
@@ -60,11 +62,12 @@ func main() {
 
 	//batchCreate()
 	//batchUpdate()
+	//batchUpdateError()
 
 	//getFields()
 	//getField()
 	//oql()
 
 	//transactionV3()
-	//batchTransactionV3()
+	batchTransactionV3()
 }

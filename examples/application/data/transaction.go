@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 )
@@ -10,15 +12,18 @@ var (
 		"text":         "recordTransaction",
 		"text2":        "recordTransaction",
 		"bigintType":   "2",
+		"number":       "1.1",
 		"dateType":     "2024-08-20",
-		"datetimeType": 1724688780000,
+		"datetimeType": time.Now().UnixMilli(),
 		"decimal":      "1",
 		"formula":      "4",
+		"email":        "transaction@interface.com",
 		"option":       "option_7f97916560b",
-		"richText": map[string]interface{}{
-			"raw": "<div style=\"white-space: pre-wrap;\">&lt;p&gt;test&lt;/p&gt;</div>",
-		},
-		//"richText": "<div style=\"white-space: pre-wrap;\">&lt;p&gt;test&lt;/p&gt;</div>",
+		"option2":      []string{"option_8a6e42e40af", "option_79ff1b98f80"},
+		//"richText": map[string]interface{}{
+		//	"raw": "<div style=\"white-space: pre-wrap;\">&lt;p&gt;test&lt;/p&gt;</div>",
+		//},
+		"richText": "<div style=\"white-space: pre-wrap;\">&lt;p&gt;test&lt;/p&gt;</div>",
 		"avatar": map[string]interface{}{
 			"image": map[string]interface{}{
 				"token": "e09c1f0c43ff4019bd0463fc3bbe8821_c",
@@ -26,13 +31,41 @@ var (
 			},
 			"source": "image",
 		},
+		"attachment": []map[string]interface{}{
+			{
+				"mime_type": "xlsx",
+				"name":      "待升级 app.xlsx",
+				"size":      "12237",
+				"token":     "BIZ_06aa3803148f4d7791ab3699e84a5ac3",
+				"uri":       "/ae/api/v1/assets/attachment/download?token=BIZ_06aa3803148f4d7791ab3699e84a5ac3",
+			},
+		},
+		"phone": map[string]interface{}{
+			"dialing_code": "+86",
+			"number":       "18888888888",
+			"region_code":  "CN",
+		},
+		"multilingual": map[string]interface{}{
+			"zh-CN": "多语",
+			"en-US": "multilingual",
+		},
+		"lookup": "1810084405164122",
+		"region": map[string]interface{}{
+			"_id":         "1736322142527502",
+			"region_code": "FSM",
+			"fullPath": map[string]interface{}{
+				"zh-CN": "密克罗尼西亚联邦",
+				"en-US": "Micronesia (Federated States of)",
+			},
+		},
 	}
 
-	recordTransactionStruct = TestCreateObjectV2{
-		Text:       "testV3Struct",
+	recordTransactionStruct = TestTransactionCreateObjectV2{
+		Text:       "recordTransactionStruct",
+		Text2:      "xx",
 		BigintType: "3",
 		DateType:   "2024-09-09",
-		Datetime:   1724688780000,
+		Datetime:   time.Now().UnixMilli(),
 		Decimal:    "2",
 		Formula:    "3",
 		Number:     111.1,
@@ -45,13 +78,8 @@ var (
 			Number:      "18888888888",
 			RegionCode:  "CN",
 		},
-		Option: &faassdk.OptionV3{ // 这里虽然可以传结构过去，并且也自己改了颜色和 label，但是创建的时候还是只会取 api_name，label 用的是之前设置的 label
-			APIName: "option_7f97916560b",
-			Color:   "red",
-			Label: faassdk.MultilingualV3{
-				Zh: "选项1",
-			},
-		},
+		Option:  "option_7f97916560b",
+		Option2: []string{"option_8a6e42e40af", "option_79ff1b98f80"},
 		Avatar: &faassdk.AvatarV3{
 			Image: &faassdk.AttachmentModelV3{
 				Token: "e09c1f0c43ff4019bd0463fc3bbe8821_c",
@@ -77,9 +105,9 @@ var (
 			},
 		},
 		Lookup: &faassdk.LookupV3{
-			ID: "1808488223853568",
+			ID: "1810393764956212",
 			Name: faassdk.MultilingualV3{
-				Zh: "1808488223853568",
+				Zh: "1810393764956212",
 			},
 		},
 	}
@@ -88,18 +116,36 @@ var (
 func transactionV3() {
 	// 创建一个新的空事务
 	tx := application.DataV3.NewTransaction()
+
+	var record []TestObjectV2
+	err := application.DataV3.Object("objectForAll").Select(AllFieldAPINames...).Limit(2).Find(ctx, &record)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("find record error: %+v", err)
+		return
+	}
+
+	if len(record) < 2 {
+		application.GetLogger(ctx).Errorf("find record error: %+v", err)
+		return
+	}
+
+	//// 注册删除
+	//tx.Object("objectForAll").RegisterDelete(record[0].ID)
+	//application.GetLogger(ctx).Infof("delete record, id: %+v", record[0].ID)
+
+	//// 注册更新
+	updateRecord := recordTransactionStruct
+	updateRecord.Text2 = "updateTransaction"
+	tx.Object("objectForAll").RegisterUpdate(record[1].ID, updateRecord)
+	application.GetLogger(ctx).Infof("update record, id: %+v", record[1].ID)
+
 	// 注册创建
-	id, err := tx.Object("objectForAll").RegisterCreate(recordTransaction)
+	id, err := tx.Object("objectForAll").RegisterCreate(recordTransactionStruct)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("create record error: %+v", err)
 		return
 	}
-	application.GetLogger(ctx).Infof("create record success, id: %+v", id)
-
-	//// 注册更新
-	//tx.Object("objectForAll").RegisterUpdate(id, updateRecordStruct)
-	//// 注册删除
-	//tx.Object("objectForAll").RegisterDelete(id)
+	application.GetLogger(ctx).Infof("create record, id: %+v", id)
 
 	err = tx.Commit(ctx)
 	if err != nil {
@@ -111,20 +157,37 @@ func transactionV3() {
 func batchTransactionV3() {
 	tx := application.DataV3.NewTransaction()
 
+	id1, id2 := createRecord()
+	application.GetLogger(ctx).Infof("delete record, id: %+v, %+v", id1, id2)
+
+	//// 注册批量删除
+	tx.Object("objectForAll").RegisterBatchDelete([]interface{}{id1, id2})
+
+	id3, id4 := createRecord()
+	application.GetLogger(ctx).Infof("update record, id: %+v, %+v", id3, id4)
+
+	//// 注册批量更新
+	updateRecord := recordTransactionStruct
+	updateRecord.Text2 = "batchUpdateTransaction"
+	updateRecord.ID = id3
+	updateRecord2 := recordInterface
+	updateRecord2["text2"] = "batchUpdateTransaction2"
+	updateRecord2["_id"] = id4
+	tx.Object("objectForAll").RegisterBatchUpdate([]interface{}{updateRecord, updateRecord2})
+
 	// 注册批量 db 操作，单个批量操作数据量限制 100 条，多个批量操作的总数据量限制 500 条
-	// 注册批量创建
-	ids, err := tx.Object("objectForAll").RegisterBatchCreate([]interface{}{recordTransaction})
+	//// 注册批量创建
+	ids, err := tx.Object("objectForAll").RegisterBatchCreate([]interface{}{recordTransaction, recordTransactionStruct})
 	if err != nil {
 		application.GetLogger(ctx).Errorf("batch create record error: %+v", err)
 		return
 	}
 	application.GetLogger(ctx).Infof("create record success, ids: %+v", ids)
 
-	//// 注册批量更新
-	//tx.Object("objectForAll").RegisterBatchUpdate([]interface{}{updateRecordStruct})
-	//// 注册批量删除
-	//tx.Object("objectForAll").RegisterBatchDelete([]interface{}{recordInterface})
-
 	// 提交事务
-	tx.Commit(ctx)
+	err = tx.Commit(ctx)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("commit transaction error: %+v", err)
+		return
+	}
 }

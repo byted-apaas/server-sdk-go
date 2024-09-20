@@ -154,3 +154,17 @@ func batchUpdate() {
 		return
 	}
 }
+
+func batchUpdateError() {
+	application.GetLogger(ctx).Infof("=========== batchUpdateError ==============")
+
+	updateRecords := make(map[string]interface{})
+	updateRecords["1810633284089911"] = updateRecordStruct
+	updateRecords["1810633284099900"] = updateRecordStruct
+
+	err := application.DataV3.Object("objectForAll").BatchUpdate(ctx, updateRecords)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("batchUpdate record error: %+v", err)
+		return
+	}
+}

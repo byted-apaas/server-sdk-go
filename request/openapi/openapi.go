@@ -190,45 +190,7 @@ func (r *RequestHttp) GetRecords(ctx context.Context, appCtx *structs.AppCtx, ob
 		return nil, nil
 	}
 
-	_, ok1 := records.(*[]std_record.Record)
-	_, ok2 := records.(*[]*std_record.Record)
-	if ok1 || ok2 {
-		var newRecords []map[string]interface{}
-		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
-		if err != nil {
-			return nil, cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
-		}
-		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, newRecords, unauthFields)
-
-		if len(unauthFields) > 0 && len(unauthFields) != len(newRecords) {
-			return nil, cExceptions.InternalError("len(records) %d != len(unauthFields) %d", len(newRecords), len(unauthFields))
-		}
-
-		rv := reflect.ValueOf(records).Elem()
-		arr := make([]reflect.Value, len(newRecords), len(newRecords))
-		for i, record := range newRecords {
-			v := std_record.Record{
-				Record: record,
-			}
-			if len(unauthFields) > 0 {
-				v.UnauthFields = unauthFields[i]
-			}
-			if ok1 {
-				arr[i] = reflect.ValueOf(v)
-			} else {
-				arr[i] = reflect.ValueOf(&v)
-			}
-		}
-
-		rv.Set(reflect.Append(rv, arr...))
-	} else {
-		err = cUtils.JsonUnmarshalBytes([]byte(recordList), records)
-		if err != nil {
-			return nil, cExceptions.InvalidParamError("GetRecords failed, err: %v", err)
-		}
-		cHttp.AppendUnauthFieldRecordList(ctx, objectAPIName, records, unauthFields)
-	}
-	return unauthFields, nil
+	return extraRecordAndUnauthField(ctx, objectAPIName, recordList, unauthFields, records)
 }
 
 func (r *RequestHttp) getRecordsV2Request(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParamV2) (string, [][]string, error) {
@@ -275,12 +237,15 @@ func (r *RequestHttp) GetRecordsV3(ctx context.Context, appCtx *structs.AppCtx, 
 		return nil, nil
 	}
 
-	// todo wby 下面的操作可以考虑抽出一个公共方法
+	return extraRecordAndUnauthField(ctx, objectAPIName, recordList, unauthFields, records)
+}
+
+func extraRecordAndUnauthField(ctx context.Context, objectAPIName string, recordList string, unauthFields [][]string, records interface{}) ([][]string, error) {
 	_, ok1 := records.(*[]std_record.Record)
 	_, ok2 := records.(*[]*std_record.Record)
 	if ok1 || ok2 {
 		var newRecords []map[string]interface{}
-		err = cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
+		err := cUtils.JsonUnmarshalBytes([]byte(recordList), &newRecords)
 		if err != nil {
 			return nil, cExceptions.InvalidParamError("Unmarshal DataList failed: %+v", err)
 		}
@@ -308,7 +273,7 @@ func (r *RequestHttp) GetRecordsV3(ctx context.Context, appCtx *structs.AppCtx, 
 
 		rv.Set(reflect.Append(rv, arr...))
 	} else {
-		err = cUtils.JsonUnmarshalBytes([]byte(recordList), records)
+		err := cUtils.JsonUnmarshalBytes([]byte(recordList), records)
 		if err != nil {
 			return nil, cExceptions.InvalidParamError("GetRecords failed, err: %v", err)
 		}
@@ -1036,7 +1001,7 @@ func (r *RequestHttp) Transaction(ctx context.Context, appCtx *structs.AppCtx, p
 	}
 
 	if dataVersion == structs.DataVersionV3 {
-		body["data_version"] = dataVersion
+		body["dataVersion"] = dataVersion
 	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathTransaction(namespace), nil, body, cHttp.AppTokenMiddleware))

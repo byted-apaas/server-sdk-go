@@ -18,7 +18,7 @@ func getFields() {
 
 func getField() {
 	var field interface{}
-	err := application.MetadataV3.Object("objectForAll").GetField(ctx, "option", &field)
+	err := application.MetadataV3.Object("objectForAll").GetField(ctx, "option2", &field)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("err: %v", err)
 		return

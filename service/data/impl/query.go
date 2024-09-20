@@ -271,7 +271,6 @@ func (q *Query) FindOne(ctx context.Context, record interface{}, unauthFields ..
 }
 
 func (q *Query) findV3(ctx context.Context, records interface{}) (unauthFieldResult [][]string, err error) {
-	fmt.Printf("wby test data v3\n")
 
 	var criterion *cond2.Criterion
 	criterion, err = q.buildCriterion(ctx, q.filter)

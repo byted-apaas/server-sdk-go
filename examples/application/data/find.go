@@ -144,6 +144,27 @@ func getCount() {
 	application.GetLogger(ctx).Infof("count: %d", count)
 }
 
+func findError() {
+	cond := operator.Or(
+		operator.Eq("_id", 1238488296249436),
+		operator.Eq("_id", 1239101723792428),
+	)
+	application.GetLogger(ctx).Infof("=============== find ==================")
+	var record1 []TestObjectV2
+	var unauthFiled [][]string
+	err := application.DataV3.Object("objectForAll").
+		Offset(0).Limit(10).
+		Select("_id", "phone", "option", "email").
+		Where(cond).
+		Find(ctx, &record1, &unauthFiled)
+	if err != nil {
+		application.GetLogger(ctx).Errorf("err: %v", err)
+		return
+	}
+	application.GetLogger(ctx).Infof("record1Count: %d, record1: %s", len(record1), cUtils.ToString(record1))
+	application.GetLogger(ctx).Infof("unauthFiled, %d, unauthFiled: %s", len(unauthFiled), cUtils.ToString(unauthFiled))
+}
+
 // ============================================ 以下为 datav1 的请求 =======================================
 // Record 类型转换
 func findOneRecordStruct1() {

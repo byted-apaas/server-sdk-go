@@ -69,5 +69,6 @@ func main() {
 	//oql()
 
 	//transactionV3()
-	batchTransactionV3()
+	//batchTransactionV3()
+	batchTransactionV1()
 }

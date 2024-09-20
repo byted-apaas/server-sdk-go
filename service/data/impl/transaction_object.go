@@ -174,7 +174,7 @@ func (t *TransactionObject) RegisterBatchUpdate(records interface{}) {
 			return
 		}
 		delete(newRecords[i], "_id")
-		if !reflect.DeepEqual(flagRecord, newRecords) {
+		if !reflect.DeepEqual(flagRecord, newRecords[i]) {
 			isSameValue = false
 			newRecords[i]["_id"] = _id
 			break

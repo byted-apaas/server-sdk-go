@@ -159,12 +159,15 @@ func batchUpdateError() {
 	application.GetLogger(ctx).Infof("=========== batchUpdateError ==============")
 
 	updateRecords := make(map[string]interface{})
-	updateRecords["1810633284089911"] = updateRecordStruct
+	up := updateRecordInterface
+	up["puhhh"] = "123"
+	updateRecords["1810633284089911"] = up
 	updateRecords["1810633284099900"] = updateRecordStruct
 
 	err := application.DataV3.Object("objectForAll").BatchUpdate(ctx, updateRecords)
 	if err != nil {
 		application.GetLogger(ctx).Errorf("batchUpdate record error: %+v", err)
+		// 请求参数不合法：[{"success":false,"_id":"1810633284089911","errors":[{"code":"k_ec_000015","message":"请求参数不合法：\"objectForAll\" 中的字段 \"puhhh\" 不存在，或是不支持的数ull}]},{"success":false,"_id":"1810633284099900","errors":[{"code":"k_mt_ec_400001859","message":"其他记录写入失败导致当前记录同时失败","sub_code":null,"fields":null}]}] [k_ec_000015]
 		return
 	}
 }

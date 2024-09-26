@@ -53,7 +53,11 @@ func (t *Transaction) Commit(ctx context.Context) error {
 		return nil
 	}
 
-	uuidToRecordID, err := request.GetInstance(ctx).Transaction(ctx, t.appCtx, t.placeholders, t.operations)
+	dataVersion := structs.DataVersionV1
+	if t.appCtx.IsDataV3() {
+		dataVersion = structs.DataVersionV3
+	}
+	uuidToRecordID, err := request.GetInstance(ctx).Transaction(ctx, t.appCtx, t.placeholders, t.operations, dataVersion)
 	if err != nil {
 		return err
 	}

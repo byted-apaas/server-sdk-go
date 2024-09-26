@@ -13,6 +13,10 @@ type DataV2 struct {
 }
 
 func NewDataV2(s *structs.AppCtx) data.IDataV2 {
+	if s == nil {
+		s = &structs.AppCtx{}
+	}
+	s.DataVersion = structs.DataVersionV2
 	return &DataV2{appCtx: s}
 }
 

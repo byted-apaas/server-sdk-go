@@ -9,3 +9,10 @@ type File struct {
 	Multiple  bool     `json:"multiple"`
 	FileTypes []string `json:"fileTypes"`
 }
+
+type FileV3 struct {
+	FieldBaseV3
+	Required  bool     `json:"required"`
+	Multiple  bool     `json:"multiple"`
+	FileTypes []string `json:"fileTypes"`
+}

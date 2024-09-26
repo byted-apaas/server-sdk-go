@@ -5,6 +5,9 @@ package structs
 
 import (
 	"encoding/json"
+
+	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
+	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 )
 
 type I18n struct {
@@ -13,6 +16,23 @@ type I18n struct {
 }
 
 type I18ns []I18n
+
+func (i I18ns) TransToMultilingualV3() *faassdk.MultilingualV3 {
+	if i == nil {
+		return nil
+	}
+	res := &faassdk.MultilingualV3{}
+	for _, l := range i {
+		switch l.LanguageCode {
+		case intern.LanguageCodeZH:
+			res.Zh = l.Text
+		case intern.LanguageCodeEN:
+			res.En = l.Text
+		default:
+		}
+	}
+	return res
+}
 
 type TypeSetting struct {
 	Name     string      `json:"name"`
@@ -489,3 +509,32 @@ type RegionFilter struct {
 	RecordFilter Criterion   `json:"recordFilter"`
 	Precondition interface{} `json:"precondition"` // 页面无配置入口
 }
+
+func (r *RegionFilter) ToV3() *RegionFilterV3 {
+	return &RegionFilterV3{
+		ID:           r.ID,
+		ErrorMessage: r.ErrorMessage.TransToMultilingualV3(),
+		Label:        r.Label,
+		RecordFilter: r.RecordFilter,
+		Precondition: r.Precondition,
+	}
+}
+
+type RegionFilterV3 struct {
+	ID           string                  `json:"id"`
+	ErrorMessage *faassdk.MultilingualV3 `json:"errorMessage"`
+	Label        string                  `json:"label"`
+	RecordFilter Criterion               `json:"recordFilter"`
+	Precondition interface{}             `json:"precondition"` // 页面无配置入口
+}
+
+//type LookupV3 struct {
+//	ID   string                 `json:"_id"`
+//	Name faassdk.MultilingualV3 `json:"_name"`
+//}
+//
+//type OptionV3 struct {
+//	APIName string                 `json:"api_name"`
+//	Color   string                 `json:"color"`
+//	Label   faassdk.MultilingualV3 `json:"label"`
+//}

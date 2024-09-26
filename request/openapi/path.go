@@ -8,6 +8,19 @@ import (
 )
 
 const (
+	// DataV3 接口
+	PathCreateRecordV3      = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records"
+	PathBatchCreateRecordV3 = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records_batch"
+
+	PathDeleteRecordV3      = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records/:recordID"
+	PathBatchDeleteRecordV3 = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records_batch"
+
+	PathUpdateRecordV3      = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records/:recordID"
+	PathBatchUpdateRecordV3 = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records_batch"
+
+	PathGetRecordsV3      = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records/:recordID"
+	PathBatchGetRecordsV3 = "/v1/data/namespaces/:namespace/objects/:objectAPIName/records_query"
+
 	// PathGetRecordsV2 新版接口
 	PathGetRecordsV2 = "/api/data/v1/namespaces/:namespace/objects/:objectAPIName/records"
 
@@ -75,8 +88,24 @@ func GetPathGetRecordsV2(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathGetRecordsV2).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
+func GetPathGetRecordsV3(namespace, objectAPIName string, recordID int64) string {
+	return cUtils.NewPathReplace(PathGetRecordsV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordID(recordID).Path()
+}
+
+func GetPathBatchGetRecordsV3(namespace, objectAPIName string) string {
+	return cUtils.NewPathReplace(PathBatchGetRecordsV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
+}
+
 func GetPathCreateRecordV2(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathCreateRecordV2).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
+}
+
+func GetPathCreateRecordV3(namespace, objectAPIName string) string {
+	return cUtils.NewPathReplace(PathCreateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
+}
+
+func GetPathBatchCreateRecordV3(namespace, objectAPIName string) string {
+	return cUtils.NewPathReplace(PathBatchCreateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
 func GetPathBatchCreateRecordV2(namespace, objectAPIName string) string {
@@ -85,6 +114,14 @@ func GetPathBatchCreateRecordV2(namespace, objectAPIName string) string {
 
 func GetPathUpdateRecordV2(namespace, objectAPIName string, recordID int64) string {
 	return cUtils.NewPathReplace(PathUpdateRecordV2).Namespace(namespace).ObjectAPIName(objectAPIName).RecordID(recordID).Path()
+}
+
+func GetPathUpdateRecordV3(namespace, objectAPIName string, recordID string) string {
+	return cUtils.NewPathReplace(PathUpdateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordIDStr(recordID).Path()
+}
+
+func GetPathBatchUpdateRecordV3(namespace, objectAPIName string) string {
+	return cUtils.NewPathReplace(PathBatchUpdateRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
 func GetPathBatchUpdateRecordV2(namespace, objectAPIName string) string {
@@ -97,6 +134,14 @@ func GetPathDeleteRecordV2(namespace, objectAPIName string, recordID int64) stri
 
 func GetPathBatchDeleteRecordV2(namespace, objectAPIName string) string {
 	return cUtils.NewPathReplace(PathBatchDeleteRecordV2).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
+}
+
+func GetPathDeleteRecordV3(namespace, objectAPIName string, recordID string) string {
+	return cUtils.NewPathReplace(PathDeleteRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).RecordIDStr(recordID).Path()
+}
+
+func GetPathBatchDeleteRecordV3(namespace, objectAPIName string) string {
+	return cUtils.NewPathReplace(PathBatchDeleteRecordV3).Namespace(namespace).ObjectAPIName(objectAPIName).Path()
 }
 
 func GetPathDownloadFileV2(fileID string) string {

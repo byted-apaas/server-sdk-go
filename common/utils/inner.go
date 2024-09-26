@@ -178,3 +178,19 @@ func ParseBatchResult(resp *structs.BatchResult, result interface{}) error {
 	}
 	return nil
 }
+
+func ParseBatchResultV3(resp *structs.BatchResultV3, result interface{}) error {
+	if resp == nil {
+		return nil
+	}
+
+	switch result.(type) {
+	case *structs.BatchResultV3:
+		reflect.ValueOf(result).Elem().Set(reflect.ValueOf(*resp))
+	case **structs.BatchResultV3:
+		reflect.ValueOf(result).Elem().Elem().Set(reflect.ValueOf(*resp))
+	default:
+		return cExceptions.InvalidParamError("the type of result should be *structs.BatchResultV3 or **structs.BatchResultV3, but %T", result)
+	}
+	return nil
+}

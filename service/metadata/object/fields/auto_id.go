@@ -10,3 +10,11 @@ type AutoID struct {
 	Prefix         string `json:"prefix"`
 	Suffix         string `json:"suffix"`
 }
+
+type AutoIDV3 struct {
+	FieldBaseV3
+	GenerateMethod string `json:"generateMethod"` // "random"|"incremental"
+	DigitsNumber   int64  `json:"digitsNumber"`
+	Prefix         string `json:"prefix"`
+	Suffix         string `json:"suffix"`
+}

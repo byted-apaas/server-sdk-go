@@ -8,3 +8,9 @@ type ReferenceField struct {
 	GuideFieldAPIName string `json:"guideFieldAPIName"`
 	FieldAPIName      string `json:"fieldAPIName"`
 }
+
+type ReferenceFieldV3 struct {
+	FieldBaseV3
+	GuideFieldAPIName string `json:"guideFieldAPIName"`
+	FieldAPIName      string `json:"fieldAPIName"`
+}

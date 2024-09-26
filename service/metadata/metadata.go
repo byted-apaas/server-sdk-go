@@ -33,6 +33,10 @@ func (m *Metadata) Object(objectAPIName string) IObject {
 }
 
 func NewMetadata(appCtx *structs.AppCtx) IMetadata {
+	if appCtx == nil {
+		appCtx = &structs.AppCtx{}
+	}
+	appCtx.DataVersion = structs.DataVersionV1
 	return &Metadata{
 		appCtx: appCtx,
 	}

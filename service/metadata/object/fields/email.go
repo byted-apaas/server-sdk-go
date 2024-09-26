@@ -8,3 +8,9 @@ type Email struct {
 	Required bool `json:"required"`
 	Unique   bool `json:"unique"`
 }
+
+type EmailV3 struct {
+	FieldBaseV3
+	Required bool `json:"required"`
+	Unique   bool `json:"unique"`
+}

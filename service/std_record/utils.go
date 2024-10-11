@@ -1,8 +1,6 @@
 package std_record
 
-import (
-	"encoding/json"
-)
+import "github.com/byted-apaas/server-common-go/utils"
 
 func ConvertStdRecord(record interface{}) (newRecord interface{}) {
 	if record == nil {
@@ -79,13 +77,11 @@ func ConvertStdRecordsFromMapV3(records map[string]interface{}) ([]interface{}, 
 	return newRecords, nil
 }
 
+// decodeRecord 将数据解码为map[string]interface{}，record 的类型可能是 map[string]interface{} 或 struct
+//nolint: byted_json_accuracyloss_unknowstruct
 func decodeRecord(record interface{}) (map[string]interface{}, error) {
 	var newRecord map[string]interface{}
-	data, err := json.Marshal(record)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(data, &newRecord)
+	err := utils.Decode(record, &newRecord)
 	if err != nil {
 		return nil, err
 	}

@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
+	utils2 "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/opensdk"
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// 序列化数据，方便打印
-	usersBytes, err := json.Marshal(users)
+	usersBytes, err := utils2.JsonMarshalBytes(users)
 	if err != nil {
 		panic(err)
 	}

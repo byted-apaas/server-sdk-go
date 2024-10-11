@@ -1,3 +1,4 @@
+//nolint: byted_nilcheck_return_null
 package main
 
 import (
@@ -125,7 +126,7 @@ func transactionV3() {
 	}
 
 	if len(record) < 2 {
-		application.GetLogger(ctx).Errorf("find record error: %+v", err)
+		application.GetLogger(ctx).Errorf("find record error < 2")
 		return
 	}
 
@@ -212,13 +213,19 @@ func batchTransactionV1() {
 		"text":  "v1Transaction",
 		"text2": "111",
 	}
-	updateRecord, _ := deepCopy(recordTransactionV1)
+	updateRecord, e := deepCopy(recordTransactionV1)
+	if e != nil {
+		return
+	}
 	updateRecord["text"] = "[datav1]batchUpdateTransaction"
 	updateRecord["_id"] = id3
 	//updateRecord2 := recordInterface
 	//updateRecord2["text2"] = "batchUpdateTransaction"
 	//updateRecord2["_id"] = id4
-	updateRecord2, _ := deepCopy(recordTransactionV1)
+	updateRecord2, e := deepCopy(recordTransactionV1)
+	if e != nil {
+		return
+	}
 	updateRecord2["text"] = "[datav1]batchUpdateTransaction"
 	updateRecord2["_id"] = id4
 	tx.Object("objectForAll").RegisterBatchUpdate([]interface{}{updateRecord, updateRecord2})

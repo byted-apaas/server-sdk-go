@@ -28,6 +28,7 @@ func (i I18ns) TransToMultilingualV3() *faassdk.MultilingualV3 {
 			res.Zh = l.Text
 		case intern.LanguageCodeEN:
 			res.En = l.Text
+		default:
 		}
 	}
 	return res

@@ -1,3 +1,5 @@
+//nolint: byted_returned_err_should_do_check
+
 package main
 
 import (
@@ -61,7 +63,7 @@ func main() {
 	//batchDeleteWithResult()
 
 	//batchCreate()
-	//batchUpdate()
+	batchUpdate()
 	//batchUpdateError()
 
 	//getFields()
@@ -70,5 +72,5 @@ func main() {
 
 	//transactionV3()
 	//batchTransactionV3()
-	batchTransactionV1()
+	//batchTransactionV1()
 }

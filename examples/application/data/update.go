@@ -159,7 +159,8 @@ func batchUpdateError() {
 	application.GetLogger(ctx).Infof("=========== batchUpdateError ==============")
 
 	updateRecords := make(map[string]interface{})
-	up := updateRecordInterface
+	up := make(map[string]interface{})
+	up = updateRecordInterface
 	up["puhhh"] = "123"
 	updateRecords["1810633284089911"] = up
 	updateRecords["1810633284099900"] = updateRecordStruct

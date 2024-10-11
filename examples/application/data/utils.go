@@ -1,18 +1,14 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/byted-apaas/server-common-go/utils"
 )
 
+//nolint: byted_json_accuracyloss_unknowstruct
 func deepCopy(src map[string]interface{}) (map[string]interface{}, error) {
 	var dst map[string]interface{}
 
-	bytes, err := json.Marshal(src)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(bytes, &dst)
+	err := utils.Decode(src, &dst)
 	if err != nil {
 		return nil, err
 	}

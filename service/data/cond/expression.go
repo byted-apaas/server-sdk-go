@@ -4,9 +4,9 @@
 package cond
 
 import (
-	"encoding/json"
 	"strings"
 
+	"github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/service/data/op"
 )
 
@@ -88,7 +88,7 @@ func (c *Criterion) ToCriterionV3() (*CriterionV3, error) {
 
 		if exp.Left.Settings.FieldPath != nil && len(exp.Left.Settings.FieldPath) > 0 {
 			settings := exp.Left.Settings.ToLeftSettingTypeV3()
-			left, err := json.Marshal(settings)
+			left, err := utils.JsonMarshalBytes(settings)
 			if err != nil {
 				return nil, err
 			}
@@ -100,7 +100,7 @@ func (c *Criterion) ToCriterionV3() (*CriterionV3, error) {
 
 		if exp.Right != nil {
 			settings := exp.Right.Settings.ToRightSettingTypeV3()
-			right, err := json.Marshal(settings)
+			right, err := utils.JsonMarshalBytes(settings)
 			if err != nil {
 				return nil, err
 			}

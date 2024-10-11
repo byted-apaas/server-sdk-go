@@ -24,15 +24,15 @@ var (
 	User   = user.NewUser(nil)
 	Event  = eventImpl.NewEvent(nil)
 
-	Data       = dataImpl.NewData(nil)
-	DataV3     = dataImpl.NewDataV3(nil)
-	Metadata   = metadata.NewMetadata(nil)
-	MetadataV3 = metadata.NewMetadataV3(nil)
-	GlobalVar  = globalVarImpl.NewGlobalVar(nil)
-	Flow       = flow.NewFlow(nil)
-	Resources  = resources.NewResources(nil)
-	Msg        = messageImpl.NewMsg(nil)
-	GetLogger  = logger.GetLogger
+	Data = dataImpl.NewData(nil)
+	//DataV3     = dataImpl.NewDataV3(nil) // todo 待产品确认最终方案后打开
+	Metadata = metadata.NewMetadata(nil)
+	//MetadataV3 = metadata.NewMetadataV3(nil) // todo 待产品确认最终方案后打开
+	GlobalVar = globalVarImpl.NewGlobalVar(nil)
+	Flow      = flow.NewFlow(nil)
+	Resources = resources.NewResources(nil)
+	Msg       = messageImpl.NewMsg(nil)
+	GetLogger = logger.GetLogger
 	// GetContext 获得一些上游传入的系统上下文参数
 	GetContext    = user.GetContext
 	GetContextMap = user.GetContextMap

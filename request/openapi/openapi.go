@@ -6,7 +6,6 @@ package openapi
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -240,6 +239,7 @@ func (r *RequestHttp) GetRecordsV3(ctx context.Context, appCtx *structs.AppCtx, 
 	return extraRecordAndUnauthField(ctx, objectAPIName, recordList, unauthFields, records)
 }
 
+// nolint: cognitive_complexity
 func extraRecordAndUnauthField(ctx context.Context, objectAPIName string, recordList string, unauthFields [][]string, records interface{}) ([][]string, error) {
 	_, ok1 := records.(*[]std_record.Record)
 	_, ok2 := records.(*[]*std_record.Record)
@@ -805,7 +805,6 @@ func (r *RequestHttp) BatchUpdateRecordV3(ctx context.Context, appCtx *structs.A
 		return nil, err
 	}
 
-	// todo wby 待确认批量更新的 response
 	resp := struct {
 		ErrMap map[string]string `json:"err_map"`
 	}{}
@@ -946,7 +945,6 @@ func (r *RequestHttp) BatchDeleteRecordV3(ctx context.Context, appCtx *structs.A
 		return nil, err
 	}
 
-	// todo wby 待确认 response
 	resp := struct {
 		ErrMap map[string]string `json:"err_map"`
 	}{}
@@ -1384,7 +1382,7 @@ func (r *RequestHttp) MGetUserSettings(ctx context.Context, appCtx *structs.AppC
 	if err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(data, &result); err != nil {
+	if err = cUtils.JsonUnmarshalBytes(data, &result); err != nil {
 		return nil, err
 	}
 	return result, nil

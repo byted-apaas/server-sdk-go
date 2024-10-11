@@ -24,5 +24,5 @@ type RollupV3 struct {
 	RollupObjectApiName      string             `json:"rollupObjectApiName"`
 	RollupFieldApiName       string             `json:"rollupFieldApiName"`
 	RollupLookupFieldApiName string             `json:"rollupLookupFieldApiName"`
-	Filter                   *structs.Criterion `json:"filter"` // todo wby 待确认
+	Filter                   *structs.Criterion `json:"filter"`
 }

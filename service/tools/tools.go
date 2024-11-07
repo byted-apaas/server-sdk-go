@@ -16,6 +16,13 @@ import (
 	"github.com/byted-apaas/server-sdk-go/request"
 )
 
+const (
+	CtxKeyTenantID   = "KTenantID"
+	CtxKeyTenantType = "KTenantType"
+	CtxKeyUserID     = "KUserID"
+	CtxKeyNamespace  = "KNamespace"
+)
+
 type ITools interface {
 	// Retry 重试工具, 默认一次立即重试 (option is nil)
 	Retry(f func() error, option *RetryOption) error
@@ -26,6 +33,9 @@ type ITools interface {
 
 	// ParseErr 转换 err 为有结构的错误，若 err 非系统返回的，则 code 为 ErrCodeDeveloperError
 	ParseErr(ctx context.Context, err error) *exceptions.BaseError
+
+	// GetCommonReqInfo 获取通用的请求信息，包括租户id，租户类型，namesapce, userID
+	GetCommonReqInfo(ctx context.Context) (tenantID int64, tenantType int64, namespace string, userID int64)
 }
 
 // RetryOption 重试选项
@@ -68,4 +78,23 @@ func (t *Tools) SetLaneNameToCtx(ctx context.Context, lane string) context.Conte
 
 func (t *Tools) ParseErr(ctx context.Context, err error) *exceptions.BaseError {
 	return cExceptions.ParseErrForUser(err)
+}
+
+func (t *Tools) GetCommonReqInfo(ctx context.Context) (tenantID int64, tenantType int64, namespace string, userID int64) {
+	if tID, ok := ctx.Value(CtxKeyTenantID).(int64); ok {
+		tenantID = tID
+	}
+
+	if tType, ok := ctx.Value(CtxKeyTenantType).(int64); ok {
+		tenantType = tType
+	}
+
+	if ns, ok := ctx.Value(CtxKeyNamespace).(string); ok {
+		namespace = ns
+	}
+
+	if uID, ok := ctx.Value(CtxKeyUserID).(int64); ok {
+		userID = uID
+	}
+	return
 }

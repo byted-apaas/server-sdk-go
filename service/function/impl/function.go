@@ -40,11 +40,11 @@ func PrintInvokeReqInfo(ctx context.Context, f *FunctionObject, params map[strin
 		var credentialID string
 		if f.appCtx != nil {
 			mode = f.appCtx.Mode
-			logger.GetLogger(ctx).Infof("f.appCtx.Mode: %v", mode)
+			logger.GetLogger(ctx).Infof("PrintInvokeReqInfo f.appCtx.Mode: %v", mode)
 		}
 		if f.appCtx != nil && f.appCtx.Credential != nil {
 			credentialID = f.appCtx.Credential.GetID()
-			logger.GetLogger(ctx).Infof("f.appCtx.Credential id: %v", credentialID)
+			logger.GetLogger(ctx).Infof("PrintInvokeReqInfo f.appCtx.Credential id: %v", credentialID)
 		}
 		logger.GetLogger(ctx).Errorf("InvokeFunctionWithAuth failed, err: %v; apiName: %v, params: %+v, appCtx.mode: %v, appCtx.Credential.id: %v", err, f.apiName, params, mode, credentialID)
 
@@ -55,7 +55,7 @@ func PrintInvokeReqInfo(ctx context.Context, f *FunctionObject, params map[strin
 			tenant, innerErr = f.appCtx.Credential.GetTenantInfo(ctx)
 			if innerErr != nil {
 				// 这个错误是在主体流程错误时，额外读取参数时的报错，不要作为 debug 的错误
-				logger.GetLogger(ctx).Infof("f.appCtx.Credential.GetTenantInfo failed, err: %v", innerErr)
+				logger.GetLogger(ctx).Infof("PrintInvokeReqInfo f.appCtx.Credential.GetTenantInfo failed, err: %v", innerErr)
 			}
 			if tenant != nil {
 				namespace = tenant.Namespace
@@ -64,7 +64,7 @@ func PrintInvokeReqInfo(ctx context.Context, f *FunctionObject, params map[strin
 			namespace = cUtils.GetNamespace()
 		}
 		if tenant == nil {
-			logger.GetLogger(ctx).Infof("tenant is nil")
+			logger.GetLogger(ctx).Infof("PrintInvokeReqInfo tenant is nil, set empty tenant info just for log")
 			tenant = &structs.TenantInfo{}
 		}
 		userID := cUtils.GetUserIDFromCtx(ctx)

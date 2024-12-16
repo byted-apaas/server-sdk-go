@@ -7,7 +7,7 @@ import (
 	cVersion "github.com/byted-apaas/server-common-go/version"
 )
 
-const Version = "v0.0.35-beta.14"
+const Version = "v0.0.35-beta.15"
 
 const SDKName = "byted-apaas/server-sdk-go"
 

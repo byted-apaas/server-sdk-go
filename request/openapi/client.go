@@ -4,12 +4,16 @@
 package openapi
 
 import (
+	"context"
+	"net"
 	"net/http"
 	"sync"
 	"time"
 
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cHttp "github.com/byted-apaas/server-common-go/http"
+	cUtils "github.com/byted-apaas/server-common-go/utils"
+	"github.com/byted-apaas/server-sdk-go/version"
 )
 
 var (
@@ -30,7 +34,25 @@ func getOpenapiClient() *cHttp.HttpClient {
 					IdleConnTimeout:     60 * time.Second,
 				},
 			},
+			FromSDK: version.GetServerSDKInfo(),
 		}
 	})
+	if cUtils.EnableMesh() {
+		openapiClient.MeshClient = &http.Client{
+			Transport: &http.Transport{
+				DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+					unixAddr, err := net.ResolveUnixAddr("unix", cUtils.GetSocketAddr())
+					if err != nil {
+						return nil, err
+					}
+					return net.DialUnix("unix", nil, unixAddr)
+				},
+				TLSHandshakeTimeout: cConstants.HttpClientTLSTimeoutDefault,
+				MaxIdleConns:        1000,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     60 * time.Second,
+			},
+		}
+	}
 	return openapiClient
 }

@@ -5,6 +5,9 @@ package structs
 
 import (
 	"encoding/json"
+
+	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
+	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 )
 
 type I18n struct {
@@ -13,6 +16,23 @@ type I18n struct {
 }
 
 type I18ns []I18n
+
+func (i I18ns) TransToMultilingualV3() *faassdk.MultilingualV3 {
+	if i == nil {
+		return nil
+	}
+	res := &faassdk.MultilingualV3{}
+	for _, l := range i {
+		switch l.LanguageCode {
+		case intern.LanguageCodeZH:
+			res.Zh = l.Text
+		case intern.LanguageCodeEN:
+			res.En = l.Text
+		default:
+		}
+	}
+	return res
+}
 
 type TypeSetting struct {
 	Name     string      `json:"name"`
@@ -332,16 +352,18 @@ type ExpressionField struct {
 	DisplayName        []string `json:"displayName"`
 	FieldsDisplayNames []string `json:"fieldsDisplayNames"`
 	DisplayLabel       []string `json:"displayLabel,omitempty"`
+	Status             string   `json:"status,omitempty"`
 
 	settingVal interface{}
 	useCache   bool
 }
 
 type Expression struct {
-	Index    int64           `json:"index"`
-	Left     ExpressionField `json:"left"`
-	Operator string          `json:"operator"`
-	Right    ExpressionField `json:"right"`
+	Index           int64           `json:"index"`
+	Left            ExpressionField `json:"left"`
+	Operator        string          `json:"operator"`
+	Right           ExpressionField `json:"right"`
+	RightForSandbox ExpressionField `json:"rightForSandbox"`
 }
 
 type Criterion struct {
@@ -353,6 +375,14 @@ type Criterion struct {
 	//BizType string `json:"biz_type"`
 
 	//UseType string `json:"use_type"`
+}
+
+type FilterType struct {
+	Label                string     `json:"label"`
+	NeedTriggerCriterion bool       `json:"needTriggerCriterion"`
+	TriggerCriterion     *Criterion `json:"triggerCriterion"`
+	Criterion            *Criterion `json:"criterion"`
+	ErrorMsg             I18ns      `json:"errorMsg"`
 }
 
 type ExtractFilterRecord struct {
@@ -449,3 +479,62 @@ type NestedFormulaSetting struct {
 type ObjFields struct {
 	Fields []*Field `json:"fields"`
 }
+
+type NestedRollupSetting struct {
+	RollupFunctionType string `json:"rollup_function_type"`
+	RollupedObject     struct {
+		ApiName string `json:"api_alias"`
+	} `json:"rolluped_object"`
+	RollupedField struct {
+		ApiName string `json:"api_alias"`
+	} `json:"rolluped_field"`
+	RollupedLookupField struct {
+		ApiName string `json:"api_alias"`
+	} `json:"rolluped_lookup_field"`
+	RollupRangeFilter *Criterion `json:"rollup_range_filter"`
+}
+
+type NestedRegionSetting struct {
+	Required    bool            `json:"required"`
+	Multiple    bool            `json:"multiple"`
+	OptionLevel bool            `json:"hasLevelStrict"`
+	StrictLevel int64           `json:"strictLevel"`
+	Filter      []*RegionFilter `json:"filter"`
+}
+
+type RegionFilter struct {
+	ID           string      `json:"id"`
+	ErrorMessage I18ns       `json:"errorMessage"`
+	Label        string      `json:"label"`
+	RecordFilter Criterion   `json:"recordFilter"`
+	Precondition interface{} `json:"precondition"` // 页面无配置入口
+}
+
+func (r *RegionFilter) ToV3() *RegionFilterV3 {
+	return &RegionFilterV3{
+		ID:           r.ID,
+		ErrorMessage: r.ErrorMessage.TransToMultilingualV3(),
+		Label:        r.Label,
+		RecordFilter: r.RecordFilter,
+		Precondition: r.Precondition,
+	}
+}
+
+type RegionFilterV3 struct {
+	ID           string                  `json:"id"`
+	ErrorMessage *faassdk.MultilingualV3 `json:"errorMessage"`
+	Label        string                  `json:"label"`
+	RecordFilter Criterion               `json:"recordFilter"`
+	Precondition interface{}             `json:"precondition"` // 页面无配置入口
+}
+
+//type LookupV3 struct {
+//	ID   string                 `json:"_id"`
+//	Name faassdk.MultilingualV3 `json:"_name"`
+//}
+//
+//type OptionV3 struct {
+//	APIName string                 `json:"api_name"`
+//	Color   string                 `json:"color"`
+//	Label   faassdk.MultilingualV3 `json:"label"`
+//}

@@ -16,4 +16,6 @@ type IFlow interface {
 	RevokeExecution(ctx context.Context, executionID int64, options *structs.RevokeOptions) (err error)
 	// GetExecutionInfo 获取流程实例信息
 	GetExecutionInfo(ctx context.Context, executionID int64) (info *structs.ExecutionInfo, err error)
+	GetApprovalInstanceList(ctx context.Context, options *structs.ApprovalInstanceListOptions) (*structs.ApprovalInstanceList, error)
+	GetApprovalInstance(ctx context.Context, options *structs.GetApprovalInstanceOptions) (*structs.ApprovalInstance, error)
 }

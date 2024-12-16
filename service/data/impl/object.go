@@ -56,6 +56,7 @@ func (o *Object) BatchCreate(ctx context.Context, records interface{}) ([]int64,
 	if o.appCtx.IsOpenSDK() {
 		return request.GetInstance(ctx).BatchCreateRecordV2(ctx, o.appCtx, o.objectAPIName, records)
 	}
+
 	return request.GetInstance(ctx).BatchCreateRecord(ctx, o.appCtx, o.objectAPIName, records)
 }
 
@@ -105,7 +106,6 @@ func (o *Object) BatchUpdateAsync(ctx context.Context, records map[int64]interfa
 	if err := o.check(); err != nil {
 		return 0, err
 	}
-
 	return request.GetInstance(ctx).BatchUpdateRecordAsync(ctx, o.appCtx, o.objectAPIName, records)
 }
 
@@ -146,7 +146,6 @@ func (o *Object) BatchDeleteAsync(ctx context.Context, _ids []int64) (int64, err
 	if err := o.check(); err != nil {
 		return 0, err
 	}
-
 	return request.GetInstance(ctx).BatchDeleteRecordAsync(ctx, o.appCtx, o.objectAPIName, _ids)
 }
 

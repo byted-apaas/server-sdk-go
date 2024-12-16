@@ -10,13 +10,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/structs"
 	"github.com/byted-apaas/server-sdk-go/service/data/cond"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
 	"github.com/byted-apaas/server-sdk-go/service/tasks"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -73,9 +74,9 @@ func TestDataCreate(t *testing.T) {
 		ID     int64       `json:"_id"`
 		Text   string      `json:"text"`
 		Number int64       `json:"number"`
-		Lookup interface{} `json:"lookup"`
+		Lookup interface{} `json:"lookup,omitempty"`
 	}
-	result, err := Data.Object("testObject").Create(ctx,
+	result, err := Data.Object("test").Create(ctx,
 		&TestObject{
 			Text:   "代码创建文本",
 			Number: -1,

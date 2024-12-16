@@ -8,3 +8,9 @@ type MobileNumber struct {
 	Required bool `json:"required"`
 	Unique   bool `json:"unique"`
 }
+
+type MobileNumberV3 struct {
+	FieldBaseV3
+	Required bool `json:"required"`
+	Unique   bool `json:"unique"`
+}

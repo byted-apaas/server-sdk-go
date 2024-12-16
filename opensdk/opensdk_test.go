@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	cConstants "github.com/byted-apaas/server-common-go/constants"
 	cUtils "github.com/byted-apaas/server-common-go/utils"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
 	"github.com/byted-apaas/server-sdk-go/service/data/cond"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -37,7 +38,7 @@ func TestDataFindOne(t *testing.T) {
 	}
 	var record TestObject
 	err := app.Data.Object("testObject").
-		Where(cond.And(cond.Eq("number", 123), cond.Eq("lookup.number", 123))).
+		Where(cond.And(cond.Eq("number", 456), cond.Eq("lookup.number", 123))).
 		Select("_id", "text", "number", "lookup").FindOne(ctx, &record)
 	assert.Nil(t, err)
 	cUtils.PrintLog(record)
@@ -83,17 +84,11 @@ func TestDataCreate(t *testing.T) {
 	result, err := app.Data.Object("testObject").Create(ctx,
 		&TestObject{
 			Text:   "代码创建文本",
-			Number: 123,
-			Lookup: map[string]interface{}{"_id": 1747281751947339},
+			Number: -1,
 		})
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
 }
-
-var (
-	delList []int64
-	delID   int64
-)
 
 func TestDataBatchCreate(t *testing.T) {
 	type TestObject struct {
@@ -109,19 +104,9 @@ func TestDataBatchCreate(t *testing.T) {
 		}, {
 			Text:   "代码创建文本2",
 			Number: -1,
-		}, {
-			Text:   "代码创建文本3",
-			Number: -1,
 		}})
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
-	for i, r := range result {
-		if i > 1 {
-			break
-		}
-		delList = append(delList, r)
-	}
-	delID = result[2]
 }
 
 func TestDataUpdate(t *testing.T) {
@@ -131,7 +116,7 @@ func TestDataUpdate(t *testing.T) {
 		Number int64       `json:"number"`
 		Lookup interface{} `json:"lookup"`
 	}
-	err := app.Data.Object("testObject").Update(ctx, 1747281618334803,
+	err := app.Data.Object("testObject").Update(ctx, 1738115468760103,
 		&TestObject{
 			Text:   fmt.Sprintf("update: %d", time.Now().Unix()),
 			Number: -2,
@@ -148,11 +133,11 @@ func TestDataBatchUpdate(t *testing.T) {
 	}
 	err := app.Data.Object("testObject").BatchUpdate(ctx,
 		map[int64]interface{}{
-			1747280793268232: &TestObject{
+			1738115468760103: &TestObject{
 				Text:   fmt.Sprintf("update: %d", time.Now().Unix()),
 				Number: -3,
 			},
-			1747280884473971: &TestObject{
+			1742103170465799: &TestObject{
 				Text:   fmt.Sprintf("update: %d", time.Now().Unix()),
 				Number: -3,
 			},
@@ -161,12 +146,12 @@ func TestDataBatchUpdate(t *testing.T) {
 }
 
 func TestDataDelete(t *testing.T) {
-	err := app.Data.Object("testObject").Delete(ctx, delID)
+	err := app.Data.Object("testObject").Delete(ctx, 1742103159605255)
 	assert.Nil(t, err)
 }
 
 func TestDataBatchDelete(t *testing.T) {
-	err := app.Data.Object("testObject").BatchDelete(ctx, delList)
+	err := app.Data.Object("testObject").BatchDelete(ctx, []int64{1742103159605255, 1742103160448023})
 	assert.Nil(t, err)
 }
 
@@ -191,39 +176,33 @@ func TestDataFindAll(t *testing.T) {
 
 func TestFunctionInvoke(t *testing.T) {
 	var result interface{}
-	err := app.Function("long").Invoke(ctx, map[string]interface{}{"sleep": 100}, &result)
+	err := app.Function("syncFunc_v2").Invoke(ctx, map[string]interface{}{"a": "aa"}, &result)
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
 }
-
-var fileID string
 
 func TestUploadAttachment(t *testing.T) {
 	result, err := app.Resources.File.UploadByPath(ctx, "opensdk_test.go", "opensdk_test.go")
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
-	fileID = result.FileID
 }
 
 func TestDownloadAttachment(t *testing.T) {
-	result, err := app.Resources.File.Download(ctx, fileID)
+	result, err := app.Resources.File.Download(ctx, "2d57ddafd22d4c9a9f285dbef7b127d8")
 	assert.Nil(t, err)
 	cUtils.PrintLog(string(result))
 }
 
-var image string
-
 func TestUploadAvatar(t *testing.T) {
-	result, err := app.Resources.File.UploadAvatarByPath(ctx, "avatar.png", "/Users/xxx/test/pic/avatar.png")
+	result, err := app.Resources.File.UploadAvatarByPath(ctx, "avatar.png", "/Users/zhouweixin/Downloads/avatar.png")
 	assert.Nil(t, err)
 	cUtils.PrintLog(result)
-	image = result.ImageID
 }
 
 func TestDownloadAvatar(t *testing.T) {
-	result, err := app.Resources.File.DownloadAvatar(ctx, image)
+	result, err := app.Resources.File.DownloadAvatar(ctx, "7a474cd18ab74366aed5f058cc4c9c55_o")
 	assert.Nil(t, err)
 
-	err = os.WriteFile("/Users/xxx/test/pic/avatar1.png", result, 0666)
+	err = os.WriteFile("/Users/zhouweixin/Downloads/avatar1.png", result, 0666)
 	assert.Nil(t, err)
 }

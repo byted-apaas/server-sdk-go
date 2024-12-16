@@ -1,6 +1,3 @@
-// Copyright 2022 ByteDance Ltd. and/or its affiliates
-// SPDX-License-Identifier: MIT
-
 package main
 
 import (
@@ -9,12 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/byted-apaas/server-sdk-go/application"
 	"github.com/byted-apaas/server-sdk-go/common/constants"
+	"github.com/byted-apaas/server-sdk-go/opensdk"
 )
 
 func main() {
-	app := application.NewApplication("xxx", "xxx").Env(constants.PlatformEnvPRE)
+	app := opensdk.NewApplication("***", "***").Env(constants.PlatformEnvUAT)
 
 	result1, err := app.Resources.File.UploadByPath(context.Background(), "main.go", "./main.go")
 	if err != nil {

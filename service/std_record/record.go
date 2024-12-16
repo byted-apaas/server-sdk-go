@@ -3,10 +3,11 @@ package std_record
 import (
 	"fmt"
 
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/byted-apaas/server-sdk-go/common/exceptions"
 	"github.com/byted-apaas/server-sdk-go/common/utils"
 	"github.com/byted-apaas/server-sdk-go/service/data/field_type/faassdk"
-	"github.com/mitchellh/mapstructure"
 )
 
 type IRecord interface {
@@ -28,6 +29,8 @@ type IRecord interface {
 	GetFieldValueAvatar(fieldAPIName string) (value *faassdk.Avatar, err error)            // 字段类型：头像
 	GetFieldValueAttachment(fieldAPIName string) (value []*faassdk.Attachment, err error)  // 字段类型：文件
 	GetFieldValueRichText(fieldAPIName string) (value *faassdk.RichText, err error)        // 字段类型：富文本
+
+	SetFieldValue(fieldAPIName string, value interface{})
 
 	GetUnauthFields() []string // 获取无权限字段
 }
@@ -159,6 +162,7 @@ func (r *Record) DecodeFieldValue(fieldAPIName string, value interface{}) (err e
 	return nil
 }
 
+// DecodeRecordValue 将 record 解码成指定结构
 func (r *Record) DecodeRecordValue(value interface{}) (err error) {
 	if r == nil || r.Record == nil {
 		return exceptions.ErrRecordIsEmpty

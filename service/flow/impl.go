@@ -37,3 +37,11 @@ func (w *Flow) GetExecutionInfo(ctx context.Context, executionID int64) (*struct
 func (w *Flow) GetExecutionUserTaskInfo(ctx context.Context, executionID int64) ([]*structs.TaskInfo, error) {
 	return request.GetInstance(ctx).GetExecutionUserTaskInfo(ctx, w.appCtx, executionID)
 }
+
+func (w *Flow) GetApprovalInstanceList(ctx context.Context, options *structs.ApprovalInstanceListOptions) (*structs.ApprovalInstanceList, error) {
+	return request.GetInstance(ctx).GetApprovalInstanceList(ctx, w.appCtx, options)
+}
+
+func (w *Flow) GetApprovalInstance(ctx context.Context, options *structs.GetApprovalInstanceOptions) (*structs.ApprovalInstance, error) {
+	return request.GetInstance(ctx).GetApprovalInstance(ctx, w.appCtx, options)
+}

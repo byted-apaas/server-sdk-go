@@ -13,3 +13,12 @@ type ExtractSingleRecord struct {
 	SortConditions       *structs.Sorts         `json:"sortConditions"`
 	RecordPosition       int64                  `json:"recordPosition"`
 }
+
+type ExtractSingleRecordV3 struct {
+	FieldBaseV3
+	CompositeTypeAPIName string                 `json:"compositeTypeAPIName"`
+	SubFields            map[string]interface{} `json:"subFields"`
+	Filter               *structs.Criterion     `json:"filter"`
+	SortConditions       *structs.Sorts         `json:"sortConditions"`
+	RecordPosition       int64                  `json:"recordPosition"`
+}

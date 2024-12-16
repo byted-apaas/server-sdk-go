@@ -3,7 +3,9 @@
 
 package faassdk
 
-import "github.com/byted-apaas/server-sdk-go/common/structs/intern"
+import (
+	"github.com/byted-apaas/server-sdk-go/common/structs/intern"
+)
 
 const (
 	ZH = intern.LanguageCodeZH
@@ -38,7 +40,7 @@ type Avatar struct {
 	Image   AvatarImages `json:"image"`
 	Color   string       `json:"color"`
 	ColorID string       `json:"color_id"`
-	Content int64        `json:"content"`
+	Content interface{}  `json:"content"`
 }
 
 // RichTextConfig 富文本配置
@@ -62,4 +64,64 @@ type Attachment struct {
 	MimeType string `json:"mime_type"`
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
+}
+
+// AvatarV3 头像（datav3 协议）
+// @example
+// {
+//    "source": "image",
+//    "image": {
+//        "token": "0a4ca526dxxxxxxxxx9457145882",                    // 附件ID， 富文本resource id 或 图片ID
+//        "uri": "/img/198999/da69a4ef2ebxxxxxxxxba397bcc6602_l.jpg", // 图片large信息
+//    }
+//}
+type AvatarV3 struct {
+	Source  string             `json:"source"`
+	Image   *AttachmentModelV3 `json:"image,omitempty"`
+	Color   *string            `json:"color,omitempty"`
+	Content interface{}        `json:"content,omitempty"` // int | MultilingualV3
+}
+
+// AttachmentModelV3 文件（datav3 协议）
+type AttachmentModelV3 struct {
+	Token    string `json:"token"`
+	MimeType string `json:"mime_type,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Size     string `json:"size,omitempty"`
+	URI      string `json:"uri,omitempty"`
+}
+
+// RichTextV3 富文本（datav3 协议）
+type RichTextV3 struct {
+	Raw    string             `json:"raw"`
+	Config *AttachmentModelV3 `json:"config,omitempty"`
+}
+
+// PhoneNumberV3 DataV3 协议
+type PhoneNumberV3 struct {
+	RegionCode  string `json:"region_code"`
+	DialingCode string `json:"dialing_code"`
+	Number      string `json:"number"`
+}
+
+type RegionV3 struct {
+	ID         string         `json:"_id"`
+	RegionCode string         `json:"region_code"`
+	FullPath   MultilingualV3 `json:"full_path"`
+}
+
+type MultilingualV3 struct {
+	En string `json:"en_US,omitempty"`
+	Zh string `json:"zh_CN,omitempty"`
+}
+
+type LookupV3 struct {
+	ID   string         `json:"_id"`
+	Name MultilingualV3 `json:"_name"`
+}
+
+type OptionV3 struct {
+	APIName string         `json:"api_name"`
+	Color   string         `json:"color"`
+	Label   MultilingualV3 `json:"label"`
 }

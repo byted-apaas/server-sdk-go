@@ -29,6 +29,10 @@ const (
 	OpLookupMultiType      = "lookup_multi"
 	OpInheritFieldType     = "inherit"
 	OpGIDFieldType         = "gid"
+	OpBigintFieldType      = "bigint"
+	OpDecimalFieldType     = "decimal"
+	OpRollupFieldType      = "rollup"
+	OpRegionFieldType      = "region"
 )
 
 const (
@@ -57,6 +61,10 @@ const (
 	LookupMultiType      = ""
 	InheritFieldType     = ""
 	GIDFieldType         = ""
+	BigintFieldType      = "bigint"
+	DecimalFieldType     = "decimal"
+	RollupFieldType      = "rollup"
+	RegionFieldType      = "region"
 )
 
 var (
@@ -86,6 +94,10 @@ var (
 		OpLookupMultiType:      LookupMultiType,
 		OpInheritFieldType:     InheritFieldType,
 		OpGIDFieldType:         GIDFieldType,
+		OpBigintFieldType:      BigintFieldType,
+		OpDecimalFieldType:     DecimalFieldType,
+		OpRollupFieldType:      RollupFieldType,
+		OpRegionFieldType:      RegionFieldType,
 	}
 )
 

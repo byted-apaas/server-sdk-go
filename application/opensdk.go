@@ -1,6 +1,9 @@
 // Copyright 2022 ByteDance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
+// 这里的 opensdk 应该是没用的了，被使用的应该是 opensdk/opensdk.go
+// 不确定会不会引发啥惨案，所以这里就先保留
+
 package application
 
 import (

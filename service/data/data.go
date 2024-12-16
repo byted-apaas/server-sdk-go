@@ -17,6 +17,13 @@ type IData interface {
 	Oql(oql string, args ...interface{}) IOql
 }
 
+type IDataV3 interface {
+	Object(objectAPIName string) IObjectV3
+	NewTransaction() ITransaction
+	// 本期暂时不支持
+	//Oql(oql string, args ...interface{}) IOql
+}
+
 //go:generate mockery --name=IDataV2 --structname=DataV2 --filename=DataV2.go
 type IDataV2 interface {
 	Object(objectAPIName string) IObjectV2
@@ -37,11 +44,16 @@ type IObject interface {
 	BatchDeleteAsync(ctx context.Context, recordIDs []int64) (taskID int64, err error)
 
 	Count(ctx context.Context) (count int64, err error)
+
+	// 下面的查询接口必须配合 select 使用，目前不支持 SELECT *，当配合 select 使用时实际调用的是 IQuery 中的方法
 	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) (err error)
 	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) (err error)
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) (err error)
 	// FindStream 流式查询
+	// 注：
+	//   如果未设置排序字段，默认以 _id 增序查询；
+	//   如果有设置排序字段，必须设置具有唯一属性的字段，否则会有数据重复的风险；
 	// @param ctx 上下文
 	// @param recordType 记录数据的类型
 	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
@@ -122,6 +134,77 @@ type IObjectV2 interface {
 	// Deprecated: Use FindStream instead.
 	FindAll(ctx context.Context, records interface{}) error
 	// FindStream 流式查询
+	// 注：
+	//   如果未设置排序字段，默认以 _id 增序查询；
+	//   如果有设置排序字段，必须设置具有唯一属性的字段，否则会有数据重复的风险；
+	// @param ctx 上下文
+	// @param recordType 记录数据的类型
+	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
+	// @param params 参数，包括 IDGetter 和 Handler 处理函数
+	// @example:
+	// err := app.Data.Object("testObject").Select("testText", "testNumber").FindStream(ctx, reflect.TypeOf(&TestObject{}), nil,
+	//		structs.FindStreamParam{
+	//			IDGetter: func(record interface{}) (id int64, err error) {
+	//				t, ok := record.(TestObject)
+	//				if !ok {
+	//					return 0, fmt.Errorf(fmt.Sprintf("should be TestObject, but %T", record))
+	//				}
+	//				return t.ID, nil
+	//			},
+	//			Handler: func(ctx context.Context, data *structs.FindStreamData) error {
+	//				var rs []*TestObject
+	//				for i := 0; i < reflect.ValueOf(data.Records).Elem().Len(); i++ {
+	//					o, ok := reflect.ValueOf(data.Records).Elem().Index(i).Interface().(TestObject)
+	//					if !ok {
+	//						panic(fmt.Sprintf("should be TestObject, but %T", reflect.ValueOf(data.Records).Elem().Index(i).Interface()))
+	//					}
+	//					rs = append(rs, &o)
+	//				}
+	//
+	//              // doSomething
+	//				return nil
+	//			},
+	//		})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) error
+
+	// Where 配置过滤条件
+	// @param condition：过滤条件，其类型为逻辑表达式 *cond.LogicalExpression 或算术表达式 *cond.ArithmeticExpression，不合法的类型会报错
+	// @example condition：
+	//     cond.And(...)
+	//     cond.Or(...)
+	//     cond.Eq(...)
+	//     cond.Gt(...)
+	// @return 返回查询对象
+	Where(condition interface{}) IQuery
+	Offset(offset int64) IQuery
+	Limit(limit int64) IQuery
+	OrderBy(fieldAPINames ...string) IQuery
+	OrderByDesc(fieldAPINames ...string) IQuery
+	Select(fieldAPINames ...string) IQuery
+}
+
+type IObjectV3 interface {
+	Create(ctx context.Context, record interface{}) (id *structs.RecordIDV3, err error)
+	BatchCreate(ctx context.Context, records interface{}) (ids []string, err error)
+
+	Update(ctx context.Context, recordID string, record interface{}) (err error)
+	BatchUpdate(ctx context.Context, records map[string]interface{}, result ...interface{}) (err error)
+
+	Delete(ctx context.Context, recordID string) (err error)
+	BatchDelete(ctx context.Context, recordIDs []string, result ...interface{}) (err error)
+
+	Count(ctx context.Context) (count int64, err error)
+
+	// 下面的查询接口必须配合 select 使用，目前不支持 SELECT *，当配合 select 使用时实际调用的是 IQuery 中的方法
+	Find(ctx context.Context, records interface{}, unauthFields ...interface{}) (err error)
+	FindOne(ctx context.Context, record interface{}, unauthFields ...interface{}) (err error)
+	// FindStream 流式查询
+	// 注：
+	//   如果未设置排序字段，默认以 _id 增序查询；
+	//   如果有设置排序字段，必须设置具有唯一属性的字段，否则会有数据重复的风险；
 	// @param ctx 上下文
 	// @param recordType 记录数据的类型
 	// @param handler 处理函数，已废弃，使用 params.Handler 参数代替
@@ -164,11 +247,19 @@ type IObjectV2 interface {
 	//     cond.Gt(...)
 	// @return 返回查询对象
 	Where(condition interface{}) IQuery
+	// FuzzySearch 模糊查询：与 where 之间是与关系
+	// @param keyword 模糊查询的关键字，必填且不可以为空串
+	// @param fieldAPINames 『可搜索字段』的字段列表，不可为空
+	// @example: FuzzySearch("张三", []string{"_name"})
+	FuzzySearch(keyword string, fieldAPINames []string) IQuery
 	Offset(offset int64) IQuery
 	Limit(limit int64) IQuery
 	OrderBy(fieldAPINames ...string) IQuery
 	OrderByDesc(fieldAPINames ...string) IQuery
 	Select(fieldAPINames ...string) IQuery
+
+	UseUserAuth() IObjectV3
+	UseSystemAuth() IObjectV3
 }
 
 //go:generate mockery --name=ITransaction --structname=Transaction --filename=Transaction.go
@@ -235,7 +326,7 @@ type IQuery interface {
 	//	if err != nil {
 	//		panic(err)
 	//	}
-	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, param ...structs.FindStreamParam) (err error)
+	FindStream(ctx context.Context, recordType reflect.Type, handler func(ctx context.Context, records interface{}) error, params ...structs.FindStreamParam) error
 
 	// Where 配置过滤条件
 	// @param condition：过滤条件，其类型为 *cond.LogicalExpression 或 *cond.ArithmeticExpression，不合法的类型会报错

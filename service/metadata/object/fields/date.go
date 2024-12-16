@@ -7,3 +7,8 @@ type Date struct {
 	FieldBase
 	Required bool `json:"required"`
 }
+
+type DateV3 struct {
+	FieldBaseV3
+	Required bool `json:"required"`
+}

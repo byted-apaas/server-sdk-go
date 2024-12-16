@@ -24,8 +24,10 @@ var (
 	User   = user.NewUser(nil)
 	Event  = eventImpl.NewEvent(nil)
 
-	Data      = dataImpl.NewData(nil)
-	Metadata  = metadata.NewMetadata(nil)
+	Data = dataImpl.NewData(nil)
+	//DataV3     = dataImpl.NewDataV3(nil) // todo 待产品确认最终方案后打开
+	Metadata = metadata.NewMetadata(nil)
+	//MetadataV3 = metadata.NewMetadataV3(nil) // todo 待产品确认最终方案后打开
 	GlobalVar = globalVarImpl.NewGlobalVar(nil)
 	Flow      = flow.NewFlow(nil)
 	Resources = resources.NewResources(nil)

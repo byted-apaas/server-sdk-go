@@ -30,6 +30,14 @@ func (o *Object) GetField(ctx context.Context, fieldAPIName string, field interf
 		return err
 	}
 
+	if o.appCtx.IsDataV3() {
+		parsedField, err := parser.ParseFieldV3(data)
+		if err != nil {
+			return err
+		}
+		return cUtils.Decode(parsedField, &field)
+	}
+
 	parsedField, err := parser.ParseField(data)
 	if err != nil {
 		return err
@@ -39,8 +47,16 @@ func (o *Object) GetField(ctx context.Context, fieldAPIName string, field interf
 
 func (o *Object) GetFields(ctx context.Context, fields interface{}) error {
 	data, err := request.GetInstance(ctx).GetFields(ctx, o.appCtx, o.ObjectAPIName)
+
 	if err != nil {
 		return err
+	}
+	if o.appCtx.IsDataV3() {
+		parsedField, err := parser.ParseFieldsV3(data.Fields)
+		if err != nil {
+			return err
+		}
+		return cUtils.Decode(parsedField, &fields)
 	}
 
 	parsedField, err := parser.ParseFields(data.Fields)

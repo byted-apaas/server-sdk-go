@@ -18,3 +18,14 @@ type Lookup struct {
 	SortConditions []SortCondition `json:"sortConditions"`
 	Filter         []interface{}   `json:"filter"` // TODO 未返回
 }
+
+type LookupV3 struct {
+	FieldBaseV3
+	Required       bool            `json:"required"`
+	Multiple       bool            `json:"multiple"`
+	ObjectAPIName  string          `json:"objectAPIName"`
+	Hierarchy      bool            `json:"hierarchy"`
+	DisplayStyle   string          `json:"displayStyle"`
+	SortConditions []SortCondition `json:"sortConditions"`
+	Filter         []interface{}   `json:"filter"` // TODO 未返回
+}

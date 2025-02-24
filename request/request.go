@@ -75,7 +75,7 @@ type IRequestOpenapi interface {
 
 	GetExecutionUserTaskInfo(ctx context.Context, appCtx *structs.AppCtx, instanceID int64) ([]*structs.TaskInfo, error)
 
-	Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error)
+	Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions, async *bool) (invokeResult *structs.FlowExecuteResult, err error)
 	RevokeExecution(ctx context.Context, appCtx *structs.AppCtx, instanceID int64, options *structs.RevokeOptions) error
 	GetExecutionInfo(ctx context.Context, appCtx *structs.AppCtx, instanceID int64) (*structs.ExecutionInfo, error)
 	GetTenantAccessToken(ctx context.Context, appCtx *structs.AppCtx, apiName string) (*structs.TenantAccessToken, error)

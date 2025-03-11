@@ -16,14 +16,14 @@ func NewFlow(appCtx *structs.AppCtx) IFlow {
 	return &Flow{appCtx: appCtx}
 }
 
-func (w *Flow) Execute(ctx context.Context, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error) {
+func (w *Flow) Execute(ctx context.Context, APIName string, options *structs.ExecuteOptions, async *bool) (invokeResult *structs.FlowExecuteResult, err error) {
 	if APIName == "" {
 		return nil, cExceptions.InvalidParamError("APIName is empty")
 	}
 	if options == nil {
 		options = &structs.ExecuteOptions{}
 	}
-	return request.GetInstance(ctx).Execute(ctx, w.appCtx, APIName, options)
+	return request.GetInstance(ctx).Execute(ctx, w.appCtx, APIName, options, async)
 }
 
 func (w *Flow) RevokeExecution(ctx context.Context, executionID int64, options *structs.RevokeOptions) error {

@@ -32,7 +32,7 @@ import (
 
 type RequestHttp struct{}
 
-func (r *RequestHttp) Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions) (invokeResult *structs.FlowExecuteResult, err error) {
+func (r *RequestHttp) Execute(ctx context.Context, appCtx *structs.AppCtx, APIName string, options *structs.ExecuteOptions, async *bool) (invokeResult *structs.FlowExecuteResult, err error) {
 	ctx = utils.SetCtx(ctx, appCtx, cConstants.ExecuteFlow)
 
 	namespace, err := utils.GetNamespace(ctx, appCtx)
@@ -44,6 +44,9 @@ func (r *RequestHttp) Execute(ctx context.Context, appCtx *structs.AppCtx, APINa
 		"variables": utils.ParseMapToFlowVariable(options.Params),
 		"operator":  cUtils.GetUserIDFromCtx(ctx),
 		"loopMasks": cUtils.GetLoopMaskFromCtx(ctx),
+	}
+	if async != nil {
+		body["async"] = *async
 	}
 
 	data, err := cUtils.ErrorWrapper(getOpenapiClient().PostJson(ctx, GetPathExecuteFlow(namespace, APIName), nil, body, cHttp.AppTokenMiddleware))

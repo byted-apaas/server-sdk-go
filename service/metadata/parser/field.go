@@ -115,7 +115,7 @@ func transOptionList(s *structs.NestedEnumSetting) (res []*fields.OptionItem) {
 			APIName:     option.APIName,
 			Description: option.Description,
 			Color:       transColor(option),
-			Active:      option.Active > 0,
+			Active:      option.Active == 1, // 取值 1-Active, 2-Inactive, 没有其他值
 		}
 	}
 	return

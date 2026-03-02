@@ -143,6 +143,8 @@ func (r *RequestHttp) GetTenantInfo(ctx context.Context, appCtx *structs.AppCtx)
 }
 
 func (r *RequestHttp) getRecordsRequest(ctx context.Context, appCtx *structs.AppCtx, objectAPIName string, param *structs.GetRecordsReqParam) (string, [][]string, error) {
+	ctx = utils.SetCtx(ctx, appCtx, cConstants.GetRecords)
+
 	if param == nil {
 		param = &structs.GetRecordsReqParam{}
 	}
